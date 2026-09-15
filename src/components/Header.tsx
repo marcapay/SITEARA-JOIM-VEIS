@@ -14,32 +14,6 @@ export function Header() {
 
   return (
     <header className="bg-slate-900/95 backdrop-blur-md text-white sticky top-0 z-50 shadow-md">
-      {/* Top Banner */}
-      <div className="bg-slate-950/90 text-slate-300 text-xs py-1.5 px-4 hidden sm:block">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <span className="font-medium text-slate-300">CRECI-MG J 08993 • Credibilidade começa no nome</span>
-          <div className="flex items-center gap-4">
-            <span className="text-slate-400">Caratinga - MG</span>
-            <Link 
-              href="/entrar" 
-              className="flex items-center gap-1.5 text-blue-400 hover:text-blue-300 font-semibold transition-colors bg-blue-500/10 px-2.5 py-0.5 rounded border border-blue-500/20"
-            >
-              <UserCheck className="w-3.5 h-3.5" />
-              <span>Portal Locador / Locatário</span>
-            </Link>
-            <a 
-              href={getWhatsAppLink()} 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="flex items-center gap-1 text-emerald-400 hover:text-emerald-300 font-semibold transition-colors"
-            >
-              <MessageCircle className="w-3.5 h-3.5 fill-current" />
-              <span>WhatsApp: {WHATSAPP_DISPLAY_PHONE}</span>
-            </a>
-          </div>
-        </div>
-      </div>
-
       {/* Main Nav Bar */}
       <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between">
         {/* Logo */}
