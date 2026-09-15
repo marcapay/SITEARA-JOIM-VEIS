@@ -13,9 +13,9 @@ export function Header() {
   const closeMenu = () => setIsMenuOpen(false);
 
   return (
-    <header className="bg-slate-900/95 backdrop-blur-md text-white sticky top-0 z-50 shadow-md border-b border-slate-800/80">
+    <header className="bg-slate-900/95 backdrop-blur-md text-white sticky top-0 z-50 shadow-md">
       {/* Top Banner */}
-      <div className="bg-slate-950/90 text-slate-300 text-xs py-1.5 px-4 hidden sm:block border-b border-slate-800/60">
+      <div className="bg-slate-950/90 text-slate-300 text-xs py-1.5 px-4 hidden sm:block">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <span className="font-medium text-slate-300">CRECI-MG J 08993 • Credibilidade começa no nome</span>
           <div className="flex items-center gap-4">
@@ -45,7 +45,7 @@ export function Header() {
         {/* Logo */}
         <Link href="/" onClick={closeMenu} className="flex items-center gap-2 group py-1">
           <Image
-            src="/logo-header.png"
+            src="/logo-white.png"
             alt="Araújo Imóveis Logo"
             width={160}
             height={50}

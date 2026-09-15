@@ -11,7 +11,7 @@ export function Footer() {
         <div className="space-y-4">
           <Link href="/" className="inline-block py-1">
             <Image 
-              src="/logo-header.png" 
+              src="/logo-white.png" 
               alt="Araújo Imóveis" 
               width={180} 
               height={60} 
