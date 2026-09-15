@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { MapPin, ShieldCheck, MessageCircle, ArrowUpRight, UserCheck } from "lucide-react";
+import { MapPin, ShieldCheck, MessageCircle, ArrowUpRight, UserCheck, FileText } from "lucide-react";
 import { getWhatsAppLink, WHATSAPP_DISPLAY_PHONE } from "@/data/properties";
 
 export function Footer() {
@@ -67,6 +67,12 @@ export function Footer() {
             </li>
             <li>
               <Link href="/administracao-de-alugueis" className="hover:text-white transition-colors py-1 block">Administração de Aluguéis</Link>
+            </li>
+            <li>
+              <Link href="/agendamento-visita-tecnica" className="hover:text-amber-300 text-amber-400 transition-colors py-1 flex items-center gap-1.5 font-medium">
+                <FileText className="w-4 h-4 text-amber-400" />
+                <span>Ficha 01: Visita Técnica</span>
+              </Link>
             </li>
             <li>
               <Link href="/sobre" className="hover:text-white transition-colors py-1 block">Sobre a Araújo Imóveis</Link>
