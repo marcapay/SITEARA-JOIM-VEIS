@@ -29,6 +29,7 @@ export default function Home() {
             <ShieldCheck className="w-4 h-4 text-blue-400" /> CRECI-MG J 08993 • Caratinga - MG
           </span>
 
+          {/* Frase Principal do Hero */}
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight mb-4 text-white max-w-4xl leading-tight uppercase drop-shadow-sm">
             SEU NOVO LAR ESTÁ NA <span className="text-blue-400">ARAÚJO IMÓVEIS</span>
           </h1>
