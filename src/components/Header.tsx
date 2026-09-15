@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Menu, X, Home, Key, Tag, Sparkles, PlusCircle, Info, PhoneCall, MessageCircle } from "lucide-react";
+import { Menu, X, Home, Key, Tag, Sparkles, PlusCircle, Info, PhoneCall, MessageCircle, UserCheck } from "lucide-react";
 import { getWhatsAppLink, WHATSAPP_DISPLAY_PHONE } from "@/data/properties";
 
 export function Header() {
@@ -20,6 +20,13 @@ export function Header() {
           <span className="font-medium text-slate-300">CRECI-MG J 08993 • Credibilidade começa no nome</span>
           <div className="flex items-center gap-4">
             <span className="text-slate-400">Caratinga - MG</span>
+            <Link 
+              href="/entrar" 
+              className="flex items-center gap-1.5 text-blue-400 hover:text-blue-300 font-semibold transition-colors bg-blue-500/10 px-2.5 py-0.5 rounded border border-blue-500/20"
+            >
+              <UserCheck className="w-3.5 h-3.5" />
+              <span>Portal Locador / Locatário</span>
+            </Link>
             <a 
               href={getWhatsAppLink()} 
               target="_blank" 
@@ -38,11 +45,11 @@ export function Header() {
         {/* Logo */}
         <Link href="/" onClick={closeMenu} className="flex items-center gap-2 group py-1">
           <Image
-            src="/logo.png"
+            src="/logo-header.png"
             alt="Araújo Imóveis Logo"
             width={160}
             height={50}
-            className="brightness-0 invert h-10 sm:h-12 w-auto object-contain transition-transform group-hover:scale-[1.02]"
+            className="h-10 sm:h-12 w-auto object-contain transition-transform group-hover:scale-[1.02]"
             priority
           />
         </Link>
@@ -74,6 +81,14 @@ export function Header() {
 
         {/* Action Buttons */}
         <div className="flex items-center gap-3">
+          <Link
+            href="/entrar"
+            className="hidden sm:flex items-center gap-1.5 bg-blue-600/90 hover:bg-blue-600 text-white text-xs sm:text-sm font-semibold px-3.5 py-2.5 rounded-xl border border-blue-500/40 transition-all shadow-sm active:scale-95"
+          >
+            <UserCheck className="w-4 h-4 text-blue-200" />
+            <span>Área do Cliente</span>
+          </Link>
+
           <a
             href={getWhatsAppLink()}
             target="_blank"
@@ -99,6 +114,15 @@ export function Header() {
       {isMenuOpen && (
         <div className="lg:hidden fixed inset-0 top-[60px] z-40 bg-slate-950/95 backdrop-blur-xl flex flex-col justify-between p-6 animate-in slide-in-from-top duration-300 overflow-y-auto">
           <nav className="flex flex-col gap-2">
+            <Link
+              href="/entrar"
+              onClick={closeMenu}
+              className="flex items-center gap-3 p-3.5 bg-blue-900/40 border border-blue-500/40 text-blue-200 rounded-xl text-lg font-semibold transition-colors mb-2"
+            >
+              <UserCheck className="w-5 h-5 text-blue-400" />
+              <span>Área do Cliente (Locador & Locatário)</span>
+            </Link>
+
             <Link
               href="/"
               onClick={closeMenu}

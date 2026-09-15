@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { MapPin, ShieldCheck, MessageCircle, ArrowUpRight } from "lucide-react";
+import { MapPin, ShieldCheck, MessageCircle, ArrowUpRight, UserCheck } from "lucide-react";
 import { getWhatsAppLink, WHATSAPP_DISPLAY_PHONE } from "@/data/properties";
 
 export function Footer() {
@@ -9,9 +9,9 @@ export function Footer() {
       <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10 mb-12">
         {/* Coluna 1: Logo & Apresentação */}
         <div className="space-y-4">
-          <Link href="/" className="inline-block bg-white p-2 rounded-xl">
+          <Link href="/" className="inline-block py-1">
             <Image 
-              src="/logo.png" 
+              src="/logo-header.png" 
               alt="Araújo Imóveis" 
               width={180} 
               height={60} 
@@ -55,10 +55,19 @@ export function Footer() {
           </ul>
         </div>
 
-        {/* Coluna 3: Institucional */}
+        {/* Coluna 3: Institucional & Área do Cliente */}
         <div>
-          <h4 className="text-white font-bold text-base mb-4 tracking-wide uppercase text-xs text-blue-400">Institucional</h4>
+          <h4 className="text-white font-bold text-base mb-4 tracking-wide uppercase text-xs text-blue-400">Área do Cliente & Links</h4>
           <ul className="space-y-2.5 text-sm">
+            <li>
+              <Link href="/entrar" className="hover:text-blue-400 text-blue-300 transition-colors py-1 flex items-center gap-1.5 font-medium">
+                <UserCheck className="w-4 h-4 text-blue-400" />
+                <span>Portal Locador & Locatário</span>
+              </Link>
+            </li>
+            <li>
+              <Link href="/administracao-de-alugueis" className="hover:text-white transition-colors py-1 block">Administração de Aluguéis</Link>
+            </li>
             <li>
               <Link href="/sobre" className="hover:text-white transition-colors py-1 block">Sobre a Araújo Imóveis</Link>
             </li>
