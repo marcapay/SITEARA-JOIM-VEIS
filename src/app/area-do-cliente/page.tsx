@@ -49,7 +49,17 @@ function AreaDoClienteContent() {
 
   const [currentUser, setCurrentUser] = useState<CrmUser>(() => {
     if (matchedUser) return matchedUser;
-    return role === "proprietario" ? CRM_REGISTERED_USERS[0] : CRM_REGISTERED_USERS[1];
+    return {
+      id: "crm-user-dynamic",
+      name: identifierParam.split("@")[0] || (role === "proprietario" ? "Proprietário" : "Inquilino"),
+      email: identifierParam || "cliente@araujo.com",
+      crmCargo: role === "proprietario" ? "Proprietário" : "Inquilino",
+      siteRole: role === "proprietario" ? "locador" : "locatario",
+      propertyTitle: "Imóvel Residencial",
+      propertyAddress: "Caratinga / MG",
+      rentValue: "R$ 2.499,98",
+      description: "Usuário do Portal"
+    };
   });
 
   useEffect(() => {
@@ -57,12 +67,18 @@ function AreaDoClienteContent() {
       setCurrentUser(matchedUser);
       if (matchedUser.crmCargo === "Proprietário") setRole("proprietario");
       else if (matchedUser.crmCargo === "Inquilino") setRole("inquilino");
-    } else {
-      if (role === "proprietario") {
-        setCurrentUser(CRM_REGISTERED_USERS[0]); // miguel (Proprietário)
-      } else {
-        setCurrentUser(CRM_REGISTERED_USERS[1]); // Mariana (Inquilino)
-      }
+    } else if (identifierParam) {
+      setCurrentUser({
+        id: "crm-user-dynamic",
+        name: identifierParam.split("@")[0] || (role === "proprietario" ? "Proprietário" : "Inquilino"),
+        email: identifierParam,
+        crmCargo: role === "proprietario" ? "Proprietário" : "Inquilino",
+        siteRole: role === "proprietario" ? "locador" : "locatario",
+        propertyTitle: "Imóvel Residencial",
+        propertyAddress: "Caratinga / MG",
+        rentValue: "R$ 2.499,98",
+        description: "Usuário do Portal"
+      });
     }
   }, [role, identifierParam]);
 

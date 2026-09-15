@@ -13,7 +13,7 @@ export interface CrmUser {
   description: string;
 }
 
-// Database of CRM Araújo Imóveis members (matching exact roles in CRM Configurações > Usuários)
+// Real registered accounts in CRM Araújo Imóveis
 export const CRM_REGISTERED_USERS: CrmUser[] = [
   {
     id: "crm-user-miguel",
@@ -25,31 +25,7 @@ export const CRM_REGISTERED_USERS: CrmUser[] = [
     propertyTitle: "Casa Residencial",
     propertyAddress: "Rua Capitão Paiva, 202 - Centro, Caratinga/MG",
     rentValue: "R$ 2.499,98",
-    description: "Proprietário cadastrado no CRM (Área do Proprietário)"
-  },
-  {
-    id: "crm-user-mariana",
-    name: "Mariana",
-    email: "mariana@araujo.com",
-    cpfCnpj: "333.444.555-66",
-    crmCargo: "Inquilino",
-    siteRole: "locatario",
-    propertyTitle: "Casa Residencial",
-    propertyAddress: "Rua Capitão Paiva, 202 - Caratinga/MG",
-    rentValue: "R$ 2.499,98",
-    description: "Inquilina cadastrada no CRM (Área do Inquilino)"
-  },
-  {
-    id: "crm-user-inquilino-demo",
-    name: "Inquilino Demo",
-    email: "inquilino@araujo.com",
-    cpfCnpj: "444.555.666-77",
-    crmCargo: "Inquilino",
-    siteRole: "locatario",
-    propertyTitle: "Apartamento 2 Quartos",
-    propertyAddress: "Rua João Pinheiro, 85 - Caratinga/MG",
-    rentValue: "R$ 1.850,00",
-    description: "Inquilino cadastrado no CRM (Área do Inquilino)"
+    description: "Proprietário cadastrado no CRM Araújo Imóveis"
   },
   {
     id: "crm-user-marcelo",
@@ -58,7 +34,7 @@ export const CRM_REGISTERED_USERS: CrmUser[] = [
     cpfCnpj: "222.333.444-55",
     crmCargo: "Administrador",
     siteRole: "admin",
-    description: "Administrador do CRM Araújo Imóveis (Acesso à equipe/gestão)"
+    description: "Administrador do CRM Araújo Imóveis"
   }
 ];
 
@@ -85,7 +61,6 @@ export function findCrmUser(identifier: string): CrmUser | undefined {
 
 /**
  * Returns true if the CRM role is a client role (Proprietário or Inquilino).
- * Administrador and Normal (operadores) are staff roles and should be ignored/redirected to admin.
  */
 export function isClientRole(cargo: CrmCargo): boolean {
   return cargo === "Proprietário" || cargo === "Inquilino";
@@ -141,7 +116,7 @@ export function getTargetPortalUrl(identifier: string, fallbackRole: "locatario"
     };
   }
 
-  // Fallback based on selected tab on site
+  // Fallback for any client user logging in
   const targetRole = fallbackRole === "locador" ? "proprietario" : "inquilino";
   return {
     url: `/area-do-cliente?role=${targetRole}&identifier=${encodeURIComponent(identifier)}`,
@@ -165,7 +140,7 @@ export function getCrmRedirectUrl(role: "locatario" | "locador", identifier: str
   }
 
   const userIdentifier = crmUser ? crmUser.email : (identifier || "cliente@araujo.com");
-  const userName = crmUser ? crmUser.name : (crmRoleParam === "proprietario" ? "miguel" : "Mariana");
+  const userName = crmUser ? crmUser.name : (crmRoleParam === "proprietario" ? "miguel" : "Inquilino");
   
   const queryParams = new URLSearchParams({
     role: crmRoleParam,
