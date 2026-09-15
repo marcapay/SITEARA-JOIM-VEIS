@@ -17,17 +17,11 @@ import {
   EyeOff, 
   CheckCircle2, 
   ExternalLink,
-  Building2,
-  User,
-  Sparkles,
-  AlertTriangle
+  Building2
 } from "lucide-react";
 import { 
-  CRM_REGISTERED_USERS, 
   findCrmUser, 
   getCrmRedirectUrl, 
-  getTargetPortalUrl,
-  isClientRole,
   CrmUser,
   CRM_BASE_URL
 } from "@/data/crmUsers";
@@ -40,9 +34,9 @@ export default function EntrarPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [detectedUser, setDetectedUser] = useState<CrmUser | null>(null);
-  const [statusMessage, setStatusMessage] = useState<{ type: "success" | "error" | "info" | "warning"; text: string } | null>(null);
+  const [statusMessage, setStatusMessage] = useState<{ type: "success" | "error" | "info"; text: string } | null>(null);
 
-  // Auto-detect CRM user as the user types email/CPF
+  // Auto-detect CRM user role as the user types email/CPF
   useEffect(() => {
     if (documentOrEmail.trim().length > 3) {
       const match = findCrmUser(documentOrEmail);
@@ -61,57 +55,32 @@ export default function EntrarPage() {
     }
   }, [documentOrEmail]);
 
-  // Quick filler function for CRM users
-  const selectQuickCrmUser = (user: CrmUser) => {
-    setDocumentOrEmail(user.email);
-    setPassword("••••••••••••");
-    setDetectedUser(user);
-    if (user.crmCargo === "Proprietário") {
-      setActiveRole("locador");
-      setStatusMessage({
-        type: "success",
-        text: `Usuário '${user.name}' selecionado. Função no CRM: PROPRIETÁRIO. Redirecionará para a Área do Proprietário.`
-      });
-    } else if (user.crmCargo === "Inquilino") {
-      setActiveRole("locatario");
-      setStatusMessage({
-        type: "success",
-        text: `Usuário '${user.name}' selecionado. Função no CRM: INQUILINO. Redirecionará para a Área do Inquilino.`
-      });
-    } else {
-      setStatusMessage({
-        type: "warning",
-        text: `Usuário '${user.name}' é ${user.crmCargo.toUpperCase()} no CRM (membro de equipe). Redirecionará para o painel de administração.`
-      });
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    const targetInfo = getTargetPortalUrl(documentOrEmail, activeRole);
-    
+    const redirectTarget = getCrmRedirectUrl(documentOrEmail, activeRole);
+
     setStatusMessage({ 
       type: "info", 
-      text: targetInfo.message 
+      text: "Conectando ao CRM Araújo Imóveis..." 
     });
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 600));
+      await new Promise((resolve) => setTimeout(resolve, 400));
 
       setStatusMessage({ 
-        type: targetInfo.isExternalCrm ? "warning" : "success", 
-        text: targetInfo.message 
+        type: "success", 
+        text: "Usuário autenticado! Redirecionando diretamente para a sua página no CRM Araújo Imóveis..." 
       });
 
       setTimeout(() => {
-        window.location.href = targetInfo.url;
-      }, 700);
+        window.location.href = redirectTarget;
+      }, 500);
     } catch {
       setStatusMessage({ 
         type: "error", 
-        text: "Erro ao conectar com a Área do Cliente. Tente novamente ou entre em contato via WhatsApp." 
+        text: "Erro ao conectar com o CRM Araújo Imóveis. Tente novamente ou entre em contato via WhatsApp." 
       });
       setIsLoading(false);
     }
@@ -126,7 +95,6 @@ export default function EntrarPage() {
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 py-8 sm:py-12 w-full flex-1 flex flex-col justify-center">
-
         {/* Main Content Layout: Form & Quick Action Cards */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start max-w-5xl mx-auto w-full">
           {/* Left Column: Interactive Login Form */}
@@ -141,7 +109,7 @@ export default function EntrarPage() {
                     Login do {activeRole === "locatario" ? "Locatário" : "Locador"}
                   </h2>
                   <p className="text-xs text-slate-400">
-                    {activeRole === "locatario" ? "Inquilinos: boletos PIX, chamados e vistorias" : "Proprietários: repasses, extratos e informe de IR"}
+                    {activeRole === "locatario" ? "Inquilinos: boletos PIX, chamados e vistorias no CRM" : "Proprietários: repasses, extratos e contratos no CRM"}
                   </p>
                 </div>
               </div>
@@ -150,30 +118,15 @@ export default function EntrarPage() {
               </span>
             </div>
 
-            {/* Detected CRM User Match Banner */}
+            {/* Detected CRM User Banner */}
             {detectedUser && (
-              <div className={`mb-5 p-3.5 rounded-xl border text-xs flex items-center justify-between animate-in fade-in ${
-                isClientRole(detectedUser.crmCargo)
-                  ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300"
-                  : "bg-amber-500/10 border-amber-500/30 text-amber-300"
-              }`}>
+              <div className="mb-5 p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center justify-between animate-in fade-in">
                 <div className="flex items-center gap-2">
-                  {isClientRole(detectedUser.crmCargo) ? (
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                  ) : (
-                    <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
-                  )}
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                   <span>
-                    <strong>Função no CRM:</strong> {detectedUser.name} ({detectedUser.crmCargo})
+                    <strong>Conta Reconhecida no CRM:</strong> {detectedUser.name} ({detectedUser.crmCargo})
                   </span>
                 </div>
-                <span className="bg-slate-900 px-2 py-0.5 rounded text-[10px] font-mono font-bold border border-slate-700">
-                  {detectedUser.crmCargo === "Proprietário"
-                    ? "Área do Proprietário"
-                    : detectedUser.crmCargo === "Inquilino"
-                    ? "Área do Inquilino"
-                    : "Painel Equipe CRM"}
-                </span>
               </div>
             )}
 
@@ -183,12 +136,9 @@ export default function EntrarPage() {
                   ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/30" 
                   : statusMessage.type === "error"
                   ? "bg-rose-500/10 text-rose-300 border-rose-500/30"
-                  : statusMessage.type === "warning"
-                  ? "bg-amber-500/10 text-amber-300 border-amber-500/30"
                   : "bg-blue-500/10 text-blue-300 border-blue-500/30"
               }`}>
                 {statusMessage.type === "success" && <CheckCircle2 className="w-5 h-5 shrink-0" />}
-                {statusMessage.type === "warning" && <AlertTriangle className="w-5 h-5 shrink-0 text-amber-400" />}
                 <span>{statusMessage.text}</span>
               </div>
             )}
@@ -204,7 +154,7 @@ export default function EntrarPage() {
                     required
                     value={documentOrEmail}
                     onChange={(e) => setDocumentOrEmail(e.target.value)}
-                    placeholder={activeRole === "locatario" ? "Ex: mariana@araujo.com ou CPF" : "Ex: miguelmr.pessoal@gmail.com ou CPF"}
+                    placeholder={activeRole === "locatario" ? "Digite seu CPF ou E-mail cadastrado" : "Digite seu CPF/CNPJ do proprietário ou E-mail"}
                     className="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   />
                   <UserCheck className="w-5 h-5 text-slate-500 absolute right-3.5 top-3.5" />
@@ -265,10 +215,10 @@ export default function EntrarPage() {
                 }`}
               >
                 {isLoading ? (
-                  <span>Acessando sua Área...</span>
+                  <span>Redirecionando para o CRM...</span>
                 ) : (
                   <>
-                    <span>Entrar na {activeRole === "locatario" ? "Área do Inquilino" : "Área do Proprietário"}</span>
+                    <span>Entrar no Portal do {activeRole === "locatario" ? "Locatário" : "Locador"} no CRM</span>
                     <ArrowRight className="w-5 h-5" />
                   </>
                 )}
@@ -281,7 +231,7 @@ export default function EntrarPage() {
             </div>
           </div>
 
-          {/* Right Column: Quick Services & CRM Features */}
+          {/* Right Column: Quick Services Info */}
           <div className="lg:col-span-5 space-y-4">
             <div className="bg-slate-900/60 backdrop-blur-xl p-6 rounded-3xl border border-slate-800">
               <h3 className="text-base font-bold text-white mb-3 flex items-center gap-2">
@@ -357,8 +307,6 @@ export default function EntrarPage() {
                 </div>
               )}
             </div>
-
-
           </div>
         </div>
 

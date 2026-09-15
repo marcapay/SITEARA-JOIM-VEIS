@@ -7,13 +7,9 @@ export interface CrmUser {
   cpfCnpj?: string;
   crmCargo: CrmCargo;
   siteRole: "locador" | "locatario" | "admin";
-  propertyTitle?: string;
-  propertyAddress?: string;
-  rentValue?: string;
-  description: string;
 }
 
-// Real registered accounts in CRM Araújo Imóveis
+// Registered CRM Araújo Imóveis accounts
 export const CRM_REGISTERED_USERS: CrmUser[] = [
   {
     id: "crm-user-miguel",
@@ -21,11 +17,7 @@ export const CRM_REGISTERED_USERS: CrmUser[] = [
     email: "miguelmr.pessoal@gmail.com",
     cpfCnpj: "111.222.333-44",
     crmCargo: "Proprietário",
-    siteRole: "locador",
-    propertyTitle: "Casa Residencial",
-    propertyAddress: "Rua Capitão Paiva, 202 - Centro, Caratinga/MG",
-    rentValue: "R$ 2.499,98",
-    description: "Proprietário cadastrado no CRM Araújo Imóveis"
+    siteRole: "locador"
   },
   {
     id: "crm-user-marcelo",
@@ -33,8 +25,7 @@ export const CRM_REGISTERED_USERS: CrmUser[] = [
     email: "marcalasolucoes@gmail.com",
     cpfCnpj: "222.333.444-55",
     crmCargo: "Administrador",
-    siteRole: "admin",
-    description: "Administrador do CRM Araújo Imóveis"
+    siteRole: "admin"
   }
 ];
 
@@ -60,95 +51,32 @@ export function findCrmUser(identifier: string): CrmUser | undefined {
 }
 
 /**
- * Returns true if the CRM role is a client role (Proprietário or Inquilino).
+ * Constructs the direct destination URL in CRM Araújo Imóveis tailored specifically
+ * to the user's role (Proprietário vs Inquilino vs Admin) in the CRM.
  */
-export function isClientRole(cargo: CrmCargo): boolean {
-  return cargo === "Proprietário" || cargo === "Inquilino";
-}
-
-/**
- * Calculates the target URL based strictly on CRM Cargo:
- * - Proprietário -> /area-do-cliente?role=proprietario
- * - Inquilino -> /area-do-cliente?role=inquilino
- * - Administrador / Normal -> https://crmaraujoimoveis.vercel.app (painel de administração)
- */
-export function getTargetPortalUrl(identifier: string, fallbackRole: "locatario" | "locador"): {
-  url: string;
-  isExternalCrm: boolean;
-  roleParam: "proprietario" | "inquilino" | "admin";
-  crmCargo?: CrmCargo;
-  userName?: string;
-  message: string;
-} {
+export function getCrmRedirectUrl(identifier: string, activeRole?: "locatario" | "locador"): string {
   const crmUser = findCrmUser(identifier);
+  
+  let crmRoleParam = activeRole === "locador" ? "proprietario" : "inquilino";
+  let userIdentifier = identifier || "cliente@araujo.com";
 
   if (crmUser) {
+    userIdentifier = crmUser.email;
     if (crmUser.crmCargo === "Proprietário") {
-      return {
-        url: `/area-do-cliente?role=proprietario&identifier=${encodeURIComponent(crmUser.email)}`,
-        isExternalCrm: false,
-        roleParam: "proprietario",
-        crmCargo: "Proprietário",
-        userName: crmUser.name,
-        message: `Usuário '${crmUser.name}' identificado como PROPRIETÁRIO no CRM. Redirecionando para a Área do Proprietário.`
-      };
+      crmRoleParam = "proprietario";
+    } else if (crmUser.crmCargo === "Inquilino") {
+      crmRoleParam = "inquilino";
+    } else if (crmUser.crmCargo === "Administrador" || crmUser.crmCargo === "Normal") {
+      crmRoleParam = "admin";
     }
-    
-    if (crmUser.crmCargo === "Inquilino") {
-      return {
-        url: `/area-do-cliente?role=inquilino&identifier=${encodeURIComponent(crmUser.email)}`,
-        isExternalCrm: false,
-        roleParam: "inquilino",
-        crmCargo: "Inquilino",
-        userName: crmUser.name,
-        message: `Usuário '${crmUser.name}' identificado como INQUILINO no CRM. Redirecionando para a Área do Inquilino.`
-      };
-    }
-
-    // Administrador ou Normal
-    return {
-      url: `${CRM_BASE_URL}/?role=admin&identifier=${encodeURIComponent(crmUser.email)}`,
-      isExternalCrm: true,
-      roleParam: "admin",
-      crmCargo: crmUser.crmCargo,
-      userName: crmUser.name,
-      message: `Usuário '${crmUser.name}' é ${crmUser.crmCargo.toUpperCase()} de equipe no CRM. Redirecionando para o Painel Administrativo.`
-    };
   }
 
-  // Fallback for any client user logging in
-  const targetRole = fallbackRole === "locador" ? "proprietario" : "inquilino";
-  return {
-    url: `/area-do-cliente?role=${targetRole}&identifier=${encodeURIComponent(identifier)}`,
-    isExternalCrm: false,
-    roleParam: targetRole,
-    message: `Redirecionando para a ${targetRole === "proprietario" ? "Área do Proprietário" : "Área do Inquilino"}...`
-  };
-}
-
-/**
- * Direct link to CRM external portal URL with matching role parameter
- */
-export function getCrmRedirectUrl(role: "locatario" | "locador", identifier: string): string {
-  const crmUser = findCrmUser(identifier);
-  
-  let crmRoleParam = role === "locador" ? "proprietario" : "inquilino";
-  if (crmUser) {
-    if (crmUser.crmCargo === "Proprietário") crmRoleParam = "proprietario";
-    if (crmUser.crmCargo === "Inquilino") crmRoleParam = "inquilino";
-    if (crmUser.crmCargo === "Administrador" || crmUser.crmCargo === "Normal") crmRoleParam = "admin";
-  }
-
-  const userIdentifier = crmUser ? crmUser.email : (identifier || "cliente@araujo.com");
-  const userName = crmUser ? crmUser.name : (crmRoleParam === "proprietario" ? "miguel" : "Inquilino");
-  
   const queryParams = new URLSearchParams({
     role: crmRoleParam,
     portal: crmRoleParam,
     area: crmRoleParam,
     identifier: userIdentifier,
-    email: userIdentifier,
-    name: userName
+    email: userIdentifier
   });
 
   return `${CRM_BASE_URL}/?${queryParams.toString()}`;
