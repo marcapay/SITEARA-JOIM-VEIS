@@ -30,7 +30,7 @@ export default function EntrarPage() {
   const [statusMessage, setStatusMessage] = useState<{ type: "success" | "error" | "info"; text: string } | null>(null);
 
   // CRM Araújo Imóveis Integration Endpoint URL (configurable via env)
-  const CRM_URL = process.env.NEXT_PUBLIC_CRM_URL || "https://crm.araujoimoveis.com.br";
+  const CRM_URL = process.env.NEXT_PUBLIC_CRM_URL || "https://crmaraujoimoveis.vercel.app";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,21 +39,21 @@ export default function EntrarPage() {
 
     try {
       // Simulate authentication request / CRM handoff
-      await new Promise((resolve) => setTimeout(resolve, 1200));
+      await new Promise((resolve) => setTimeout(resolve, 800));
 
-      // If CRM URL is defined or external integration is enabled, redirect directly to CRM session endpoint
+      // Redirect directly to CRM Araújo Imóveis
       const targetRoleParam = activeRole === "locador" ? "proprietario" : "inquilino";
-      const redirectTarget = `${CRM_URL}/login?role=${targetRoleParam}&identifier=${encodeURIComponent(documentOrEmail)}`;
+      const redirectTarget = `${CRM_URL}?role=${targetRoleParam}&identifier=${encodeURIComponent(documentOrEmail)}`;
 
       setStatusMessage({ 
         type: "success", 
-        text: `Redirecionando para o Portal do ${activeRole === "locador" ? "Locador (Proprietário)" : "Locatário (Inquilino)"} no CRM Araújo Imóveis...` 
+        text: `Redirecionando para o CRM Araújo Imóveis (${activeRole === "locador" ? "Portal do Locador" : "Portal do Locatário"})...` 
       });
 
       setTimeout(() => {
         // Redireciona para o CRM
         window.location.href = redirectTarget;
-      }, 1000);
+      }, 600);
     } catch {
       setStatusMessage({ 
         type: "error", 
@@ -323,17 +323,18 @@ export default function EntrarPage() {
               <div className="w-10 h-10 bg-blue-500/20 text-blue-400 rounded-xl flex items-center justify-center mx-auto">
                 <ExternalLink className="w-5 h-5" />
               </div>
-              <h4 className="text-sm font-bold text-white">Precisa de Ajuda com o Acesso?</h4>
+              <h4 className="text-sm font-bold text-white">Acesso Direto ao CRM Imobiliário</h4>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Nossa equipe de suporte imobiliário pode auxiliar na emissão do seu primeiro acesso ou no envio direto do boleto via WhatsApp.
+                Acesse o painel integrado de atendimento, contratos e gestão do CRM Araújo Imóveis.
               </p>
               <a
-                href="https://wa.me/5533999999999?text=Ol%C3%A1%2C%20gostaria%20de%20ajuda%20para%20acessar%20o%20Portal%20do%20Locador%2FLocat%C3%A1rio%20no%20CRM."
+                href={CRM_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-semibold text-xs px-4 py-2.5 rounded-xl border border-slate-700 transition-colors w-full"
+                className="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs px-4 py-3 rounded-xl border border-blue-500/40 transition-colors w-full shadow-md"
               >
-                <span>Falar com o Suporte da Imobiliária</span>
+                <span>Abrir CRM Araújo Imóveis</span>
+                <ExternalLink className="w-4 h-4" />
               </a>
             </div>
           </div>
