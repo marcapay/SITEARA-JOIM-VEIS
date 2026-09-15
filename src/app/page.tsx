@@ -29,8 +29,8 @@ export default function Home() {
             <ShieldCheck className="w-4 h-4 text-blue-400" /> CRECI-MG J 08993 • Caratinga - MG
           </span>
 
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight mb-4 text-white max-w-4xl leading-tight">
-            A chave para o seu novo começo está na <span className="text-blue-400">Araújo Imóveis</span>
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight mb-4 text-white max-w-4xl leading-tight uppercase">
+            Seu Novo Lar Está na <span className="text-blue-400">Araújo Imóveis</span>
           </h1>
 
           <p className="text-slate-300 text-base sm:text-xl max-w-2xl mb-8 font-normal leading-relaxed">

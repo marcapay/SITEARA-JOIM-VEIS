@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { 
   Key, 
@@ -17,8 +17,20 @@ import {
   EyeOff, 
   CheckCircle2, 
   ExternalLink,
-  Building2
+  Building2,
+  User,
+  Sparkles,
+  AlertTriangle
 } from "lucide-react";
+import { 
+  CRM_REGISTERED_USERS, 
+  findCrmUser, 
+  getCrmRedirectUrl, 
+  getTargetPortalUrl,
+  isClientRole,
+  CrmUser,
+  CRM_BASE_URL
+} from "@/data/crmUsers";
 
 export default function EntrarPage() {
   const [activeRole, setActiveRole] = useState<"locatario" | "locador">("locatario");
@@ -27,37 +39,79 @@ export default function EntrarPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [statusMessage, setStatusMessage] = useState<{ type: "success" | "error" | "info"; text: string } | null>(null);
+  const [detectedUser, setDetectedUser] = useState<CrmUser | null>(null);
+  const [statusMessage, setStatusMessage] = useState<{ type: "success" | "error" | "info" | "warning"; text: string } | null>(null);
 
-  // CRM Araújo Imóveis Integration Endpoint URL (configurable via env)
-  const CRM_URL = process.env.NEXT_PUBLIC_CRM_URL || "https://crmaraujoimoveis.vercel.app";
+  // Auto-detect CRM user as the user types email/CPF
+  useEffect(() => {
+    if (documentOrEmail.trim().length > 3) {
+      const match = findCrmUser(documentOrEmail);
+      if (match) {
+        setDetectedUser(match);
+        if (match.crmCargo === "Proprietário") {
+          setActiveRole("locador");
+        } else if (match.crmCargo === "Inquilino") {
+          setActiveRole("locatario");
+        }
+      } else {
+        setDetectedUser(null);
+      }
+    } else {
+      setDetectedUser(null);
+    }
+  }, [documentOrEmail]);
+
+  // Quick filler function for CRM users
+  const selectQuickCrmUser = (user: CrmUser) => {
+    setDocumentOrEmail(user.email);
+    setPassword("••••••••••••");
+    setDetectedUser(user);
+    if (user.crmCargo === "Proprietário") {
+      setActiveRole("locador");
+      setStatusMessage({
+        type: "success",
+        text: `Usuário '${user.name}' selecionado. Função no CRM: PROPRIETÁRIO. Redirecionará para a Área do Proprietário.`
+      });
+    } else if (user.crmCargo === "Inquilino") {
+      setActiveRole("locatario");
+      setStatusMessage({
+        type: "success",
+        text: `Usuário '${user.name}' selecionado. Função no CRM: INQUILINO. Redirecionará para a Área do Inquilino.`
+      });
+    } else {
+      setStatusMessage({
+        type: "warning",
+        text: `Usuário '${user.name}' é ${user.crmCargo.toUpperCase()} no CRM (membro de equipe). Redirecionará para o painel de administração.`
+      });
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setStatusMessage({ type: "info", text: "Conectando ao CRM Araújo Imóveis..." });
+
+    const targetInfo = getTargetPortalUrl(documentOrEmail, activeRole);
+    
+    setStatusMessage({ 
+      type: "info", 
+      text: targetInfo.message 
+    });
 
     try {
-      // Simulate authentication request / CRM handoff
-      await new Promise((resolve) => setTimeout(resolve, 800));
-
-      // Redirect directly to CRM Araújo Imóveis
-      const targetRoleParam = activeRole === "locador" ? "proprietario" : "inquilino";
-      const redirectTarget = `${CRM_URL}?role=${targetRoleParam}&identifier=${encodeURIComponent(documentOrEmail)}`;
+      await new Promise((resolve) => setTimeout(resolve, 600));
 
       setStatusMessage({ 
-        type: "success", 
-        text: `Redirecionando para o CRM Araújo Imóveis (${activeRole === "locador" ? "Portal do Locador" : "Portal do Locatário"})...` 
+        type: targetInfo.isExternalCrm ? "warning" : "success", 
+        text: targetInfo.message 
       });
 
       setTimeout(() => {
-        // Redireciona para o CRM
-        window.location.href = redirectTarget;
-      }, 600);
+        window.location.href = targetInfo.url;
+      }, 700);
     } catch {
       setStatusMessage({ 
         type: "error", 
-        text: "Erro ao conectar com o CRM Araújo Imóveis. Tente novamente ou entre em contato via WhatsApp." 
+        text: "Erro ao conectar com a Área do Cliente. Tente novamente ou entre em contato via WhatsApp." 
       });
       setIsLoading(false);
     }
@@ -73,7 +127,7 @@ export default function EntrarPage() {
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 py-8 sm:py-12 w-full flex-1 flex flex-col justify-center">
         {/* Header Breadcrumb & Title */}
-        <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-12 space-y-3">
+        <div className="text-center max-w-2xl mx-auto mb-6 sm:mb-8 space-y-3">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-300 text-xs font-semibold tracking-wide uppercase">
             <Building2 className="w-3.5 h-3.5 text-blue-400" />
             <span>CRM Araújo Imóveis • Portal Exclusivo</span>
@@ -82,8 +136,55 @@ export default function EntrarPage() {
             Área do Cliente
           </h1>
           <p className="text-slate-400 text-sm sm:text-base leading-relaxed">
-            Acesse seu espaço de gestão de aluguel. Selecione seu perfil para visualizar boletos, repasses, extratos e relatórios de vistoria.
+            Insira seu e-mail ou CPF cadastrado no CRM. O sistema reconhece sua função no CRM (<strong>Proprietário</strong> ou <strong>Inquilino</strong>) e direciona para a sua página exata.
           </p>
+        </div>
+
+        {/* Quick User Selection Chips (Registered CRM Accounts matching exact roles) */}
+        <div className="max-w-3xl mx-auto w-full mb-8 bg-slate-900/80 backdrop-blur-md p-4 rounded-2xl border border-slate-800 shadow-lg">
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">
+            <Sparkles className="w-4 h-4 text-amber-400" />
+            <span>Testar Usuários Cadastrados no CRM:</span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+            {CRM_REGISTERED_USERS.map((user) => (
+              <button
+                key={user.id}
+                type="button"
+                onClick={() => selectQuickCrmUser(user)}
+                className={`p-3 rounded-xl border text-left transition-all flex flex-col justify-between gap-2 group ${
+                  documentOrEmail.toLowerCase() === user.email.toLowerCase()
+                    ? "bg-blue-600/20 border-blue-500 text-white shadow-md shadow-blue-500/10"
+                    : "bg-slate-950/60 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-950"
+                }`}
+              >
+                <div>
+                  <div className="flex items-center gap-1.5 font-bold text-xs text-white">
+                    <User className="w-3.5 h-3.5 text-blue-400" />
+                    <span>{user.name}</span>
+                  </div>
+                  <div className="text-[11px] text-slate-400 truncate max-w-[140px]">{user.email}</div>
+                </div>
+
+                <div className="flex items-center justify-between pt-1 border-t border-slate-800/60">
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                    user.crmCargo === "Proprietário"
+                      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+                      : user.crmCargo === "Inquilino"
+                      ? "bg-blue-500/10 text-blue-400 border-blue-500/30"
+                      : "bg-amber-500/10 text-amber-400 border-amber-500/30"
+                  }`}>
+                    {user.crmCargo}
+                  </span>
+
+                  <span className="text-[10px] text-slate-500">
+                    {user.crmCargo === "Proprietário" ? "→ Proprietário" : user.crmCargo === "Inquilino" ? "→ Inquilino" : "→ Admin"}
+                  </span>
+                </div>
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Dual Tab Role Switcher */}
@@ -131,14 +232,41 @@ export default function EntrarPage() {
                     Login do {activeRole === "locatario" ? "Locatário" : "Locador"}
                   </h2>
                   <p className="text-xs text-slate-400">
-                    {activeRole === "locatario" ? "Inquilinos: boletos, contratos e manutenções" : "Proprietários: repasses, informes de IR e extratos"}
+                    {activeRole === "locatario" ? "Inquilinos: boletos PIX, chamados e vistorias" : "Proprietários: repasses, extratos e informe de IR"}
                   </p>
                 </div>
               </div>
               <span className="hidden sm:inline-block text-[11px] font-mono bg-slate-800 text-slate-300 px-2.5 py-1 rounded-md border border-slate-700">
-                CRM v2.4
+                CRM Araújo
               </span>
             </div>
+
+            {/* Detected CRM User Match Banner */}
+            {detectedUser && (
+              <div className={`mb-5 p-3.5 rounded-xl border text-xs flex items-center justify-between animate-in fade-in ${
+                isClientRole(detectedUser.crmCargo)
+                  ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300"
+                  : "bg-amber-500/10 border-amber-500/30 text-amber-300"
+              }`}>
+                <div className="flex items-center gap-2">
+                  {isClientRole(detectedUser.crmCargo) ? (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  ) : (
+                    <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+                  )}
+                  <span>
+                    <strong>Função no CRM:</strong> {detectedUser.name} ({detectedUser.crmCargo})
+                  </span>
+                </div>
+                <span className="bg-slate-900 px-2 py-0.5 rounded text-[10px] font-mono font-bold border border-slate-700">
+                  {detectedUser.crmCargo === "Proprietário"
+                    ? "Área do Proprietário"
+                    : detectedUser.crmCargo === "Inquilino"
+                    ? "Área do Inquilino"
+                    : "Painel Equipe CRM"}
+                </span>
+              </div>
+            )}
 
             {statusMessage && (
               <div className={`mb-6 p-4 rounded-xl text-xs font-semibold flex items-center gap-3 border ${
@@ -146,9 +274,12 @@ export default function EntrarPage() {
                   ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/30" 
                   : statusMessage.type === "error"
                   ? "bg-rose-500/10 text-rose-300 border-rose-500/30"
+                  : statusMessage.type === "warning"
+                  ? "bg-amber-500/10 text-amber-300 border-amber-500/30"
                   : "bg-blue-500/10 text-blue-300 border-blue-500/30"
               }`}>
                 {statusMessage.type === "success" && <CheckCircle2 className="w-5 h-5 shrink-0" />}
+                {statusMessage.type === "warning" && <AlertTriangle className="w-5 h-5 shrink-0 text-amber-400" />}
                 <span>{statusMessage.text}</span>
               </div>
             )}
@@ -156,7 +287,7 @@ export default function EntrarPage() {
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
                 <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
-                  CPF / CNPJ ou E-mail Cadastrado
+                  CPF / CNPJ ou E-mail Cadastrado no CRM
                 </label>
                 <div className="relative">
                   <input
@@ -164,7 +295,7 @@ export default function EntrarPage() {
                     required
                     value={documentOrEmail}
                     onChange={(e) => setDocumentOrEmail(e.target.value)}
-                    placeholder={activeRole === "locatario" ? "Digite seu CPF (ex: 000.000.000-00) ou E-mail" : "Digite seu CPF/CNPJ do proprietário ou E-mail"}
+                    placeholder={activeRole === "locatario" ? "Ex: mariana@araujo.com ou CPF" : "Ex: miguelmr.pessoal@gmail.com ou CPF"}
                     className="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   />
                   <UserCheck className="w-5 h-5 text-slate-500 absolute right-3.5 top-3.5" />
@@ -225,10 +356,10 @@ export default function EntrarPage() {
                 }`}
               >
                 {isLoading ? (
-                  <span>Acessando CRM...</span>
+                  <span>Acessando sua Área...</span>
                 ) : (
                   <>
-                    <span>Entrar no Portal do {activeRole === "locatario" ? "Locatário" : "Locador"}</span>
+                    <span>Entrar na {activeRole === "locatario" ? "Área do Inquilino" : "Área do Proprietário"}</span>
                     <ArrowRight className="w-5 h-5" />
                   </>
                 )}
@@ -237,7 +368,7 @@ export default function EntrarPage() {
 
             <div className="mt-6 pt-5 border-t border-slate-800 text-center flex items-center justify-center gap-2 text-slate-400 text-xs">
               <Lock className="w-4 h-4 text-emerald-400" />
-              <span>Ambiente Seguro Criptografado & Conectado ao <strong>CRM Araújo Imóveis</strong></span>
+              <span>Conectado Diretamente ao <strong>CRM Araújo Imóveis</strong></span>
             </div>
           </div>
 
@@ -323,12 +454,12 @@ export default function EntrarPage() {
               <div className="w-10 h-10 bg-blue-500/20 text-blue-400 rounded-xl flex items-center justify-center mx-auto">
                 <ExternalLink className="w-5 h-5" />
               </div>
-              <h4 className="text-sm font-bold text-white">Acesso Direto ao CRM Imobiliário</h4>
+              <h4 className="text-sm font-bold text-white">Acesso Geral ao CRM Araújo Imóveis</h4>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Acesse o painel integrado de atendimento, contratos e gestão do CRM Araújo Imóveis.
+                Painel administrativo completo de atendimento, contratos e gestão de imóveis.
               </p>
               <a
-                href={CRM_URL}
+                href={CRM_BASE_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs px-4 py-3 rounded-xl border border-blue-500/40 transition-colors w-full shadow-md"
