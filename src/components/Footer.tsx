@@ -45,7 +45,7 @@ export function Footer() {
             </li>
             <li>
               <Link href="/lancamentos" className="hover:text-white transition-colors py-1 block flex items-center gap-1 text-amber-300">
-                <span>Lançamentos</span>
+                <span>Investimentos</span>
                 <ArrowUpRight className="w-3.5 h-3.5" />
               </Link>
             </li>

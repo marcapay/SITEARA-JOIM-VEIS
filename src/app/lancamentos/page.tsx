@@ -2,11 +2,11 @@ import { Suspense } from "react";
 import { SearchFilter } from "@/components/SearchFilter";
 import { PropertyCard } from "@/components/PropertyCard";
 import { PROPERTIES_DATA } from "@/data/properties";
-import { Sparkles } from "lucide-react";
+import { TrendingUp, Sparkles } from "lucide-react";
 
 export const metadata = {
-  title: "Lançamentos e Empreendimentos em Caratinga | Araújo Imóveis",
-  description: "Conheça os melhores lançamentos imobiliários e empreendimentos na planta em Caratinga - MG. Condições facilitadas de pagamento.",
+  title: "Investimentos Imobiliários em Caratinga | Araújo Imóveis",
+  description: "Conheça as melhores oportunidades de investimento imobiliário, empreendimentos e lançamentos na planta em Caratinga - MG.",
 };
 
 export default function LancamentosPage() {
@@ -17,11 +17,11 @@ export default function LancamentosPage() {
       {/* Header da Página */}
       <div className="bg-amber-950 text-white p-6 sm:p-10 rounded-3xl space-y-3 relative overflow-hidden">
         <div className="flex items-center gap-2 text-amber-400 font-bold text-xs uppercase tracking-wider">
-          <Sparkles className="w-4 h-4" /> Empreendimentos Exclusivos
+          <TrendingUp className="w-4 h-4" /> Oportunidades & Rendimento
         </div>
-        <h1 className="text-3xl sm:text-4xl font-black">Lançamentos na Planta e Imóveis Novos</h1>
+        <h1 className="text-3xl sm:text-4xl font-black">Investimentos Imobiliários em Caratinga</h1>
         <p className="text-slate-300 text-sm sm:text-base max-w-2xl">
-          Garanta as melhores unidades com condições especiais de lançamento e parcelamento direto durante a construção.
+          Garanta os melhores imóveis com alto potencial de valorização, condições facilitadas e parcelamento direto durante a construção.
         </p>
       </div>
 
@@ -34,7 +34,7 @@ export default function LancamentosPage() {
       <div>
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
-            {launchProperties.length} lançamentos disponíveis
+            {launchProperties.length} oportunidades de investimento disponíveis
           </h2>
         </div>
 

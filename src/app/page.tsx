@@ -80,8 +80,8 @@ export default function Home() {
               <div className="w-12 h-12 rounded-xl bg-amber-500 text-white flex items-center justify-center mb-2 shadow-sm group-hover:scale-110 transition-transform">
                 <Sparkles className="w-6 h-6" />
               </div>
-              <span className="font-bold text-slate-900 text-sm sm:text-base">Lançamentos</span>
-              <span className="text-xs text-slate-500 hidden sm:inline">Imóveis na planta</span>
+              <span className="font-bold text-slate-900 text-sm sm:text-base">Investimentos</span>
+              <span className="text-xs text-slate-500 hidden sm:inline">Oportunidades e lançamentos</span>
             </Link>
 
             <Link

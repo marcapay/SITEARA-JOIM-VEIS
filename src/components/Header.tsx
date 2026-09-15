@@ -40,7 +40,7 @@ export function Header() {
             Alugar
           </Link>
           <Link href="/lancamentos" className="hover:text-amber-300 transition-colors flex items-center gap-1 text-amber-300 font-semibold bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/30 hover:bg-amber-500/20">
-            <Sparkles className="w-3.5 h-3.5 text-amber-300" /> Lançamentos
+            <Sparkles className="w-3.5 h-3.5 text-amber-300" /> Investimentos
           </Link>
           <Link href="/anunciar" className="hover:text-blue-400 transition-colors">
             Anunciar Imóvel
@@ -130,7 +130,7 @@ export function Header() {
               className="flex items-center gap-3 p-3.5 text-slate-100 hover:bg-slate-800 rounded-xl text-lg font-medium transition-colors"
             >
               <Sparkles className="w-5 h-5 text-amber-400" />
-              <span>Lançamentos</span>
+              <span>Investimentos</span>
             </Link>
 
             <Link

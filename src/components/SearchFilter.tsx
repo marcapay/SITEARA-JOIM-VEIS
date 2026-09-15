@@ -88,7 +88,7 @@ export function SearchFilter({ initialTransaction = "todos", className = "" }: S
               : "bg-slate-100 text-slate-700 hover:bg-slate-200"
           }`}
         >
-          Lançamentos
+          Investimentos
         </button>
         <button
           type="button"
