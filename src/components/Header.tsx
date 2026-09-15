@@ -15,15 +15,15 @@ export function Header() {
   return (
     <header className="bg-slate-900/95 backdrop-blur-md text-white sticky top-0 z-50 shadow-md">
       {/* Main Nav Bar */}
-      <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 py-4 sm:py-5 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" onClick={closeMenu} className="flex items-center gap-2 group py-1">
           <Image
             src="/logo-white.png"
             alt="Araújo Imóveis Logo"
-            width={160}
-            height={50}
-            className="h-10 sm:h-12 w-auto object-contain transition-transform group-hover:scale-[1.02]"
+            width={180}
+            height={56}
+            className="h-12 sm:h-14 w-auto object-contain transition-transform group-hover:scale-[1.02]"
             priority
           />
         </Link>
