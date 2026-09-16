@@ -55,32 +55,47 @@ export default function EntrarPage() {
     }
   }, [documentOrEmail]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-
-    const redirectTarget = getCrmRedirectUrl(documentOrEmail, activeRole);
-
     setStatusMessage({ 
       type: "info", 
-      text: "Conectando ao CRM Araújo Imóveis..." 
+      text: "Verificando credenciais no CRM Araújo Imóveis..." 
     });
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 400));
-
-      setStatusMessage({ 
-        type: "success", 
-        text: "Usuário autenticado! Redirecionando diretamente para a sua página no CRM Araújo Imóveis..." 
+      const response = await fetch("https://crmaraujoimoveis.vercel.app/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: documentOrEmail,
+          password: password
+        })
       });
 
-      setTimeout(() => {
-        window.location.href = redirectTarget;
-      }, 500);
-    } catch {
+      const data = await response.json();
+
+      if (data.success && data.portalUrl) {
+        setStatusMessage({ 
+          type: "success", 
+          text: "Usuário autenticado no CRM! Redirecionando para o seu painel..." 
+        });
+
+        setTimeout(() => {
+          window.location.href = data.portalUrl;
+        }, 500);
+      } else {
+        setStatusMessage({ 
+          type: "error", 
+          text: data.message || "Conta não cadastrada ou senha incorreta no CRM Araújo Imóveis." 
+        });
+        setIsLoading(false);
+      }
+    } catch (err) {
+      console.error("Erro ao conectar à API do CRM:", err);
       setStatusMessage({ 
         type: "error", 
-        text: "Erro ao conectar com o CRM Araújo Imóveis. Tente novamente ou entre em contato via WhatsApp." 
+        text: "Erro de conexão com o CRM. Tente novamente em instantes." 
       });
       setIsLoading(false);
     }
