@@ -92,11 +92,8 @@ export default function EntrarPage() {
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-white">
-                    Login do {activeRole === "locatario" ? "Locatário" : "Locador"}
+                    Login
                   </h2>
-                  <p className="text-xs text-slate-400">
-                    {activeRole === "locatario" ? "Inquilinos: boletos PIX, chamados e vistorias no CRM" : "Proprietários: repasses, extratos e contratos no CRM"}
-                  </p>
                 </div>
               </div>
               <span className="hidden sm:inline-block text-[11px] font-mono bg-slate-800 text-slate-300 px-2.5 py-1 rounded-md border border-slate-700">
@@ -132,7 +129,7 @@ export default function EntrarPage() {
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
                 <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
-                  CPF / CNPJ ou E-mail Cadastrado no CRM
+                  CPF / CNPJ Cadastrado no CRM
                 </label>
                 <div className="relative">
                   <input
@@ -140,7 +137,7 @@ export default function EntrarPage() {
                     required
                     value={documentOrEmail}
                     onChange={(e) => setDocumentOrEmail(e.target.value)}
-                    placeholder={activeRole === "locatario" ? "Digite seu CPF ou E-mail cadastrado" : "Digite seu CPF/CNPJ do proprietário ou E-mail"}
+                    placeholder="Digite seu CPF ou CNPJ cadastrado"
                     className="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   />
                   <UserCheck className="w-5 h-5 text-slate-500 absolute right-3.5 top-3.5" />
@@ -204,7 +201,7 @@ export default function EntrarPage() {
                   <span>Redirecionando para o CRM...</span>
                 ) : (
                   <>
-                    <span>Entrar no Portal do {activeRole === "locatario" ? "Locatário" : "Locador"} no CRM</span>
+                    <span>Entrar no Portal</span>
                     <ArrowRight className="w-5 h-5" />
                   </>
                 )}
