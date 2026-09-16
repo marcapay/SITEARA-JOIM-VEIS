@@ -5,7 +5,7 @@ import Link from "next/link";
 import { 
   Key, 
   Home, 
-  UserCheck, 
+  Mail, 
   FileText, 
   Wrench, 
   DollarSign, 
@@ -17,7 +17,6 @@ import {
   EyeOff, 
   CheckCircle2, 
   ExternalLink,
-  Building2,
   AlertTriangle
 } from "lucide-react";
 import { 
@@ -29,7 +28,7 @@ import {
 
 export default function EntrarPage() {
   const [activeRole, setActiveRole] = useState<"locatario" | "locador">("locatario");
-  const [documentOrEmail, setDocumentOrEmail] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
@@ -37,10 +36,10 @@ export default function EntrarPage() {
   const [detectedUser, setDetectedUser] = useState<CrmUser | null>(null);
   const [statusMessage, setStatusMessage] = useState<{ type: "success" | "error" | "info"; text: string } | null>(null);
 
-  // Auto-detect CRM user role as the user types email/CPF
+  // Auto-detect CRM user role as the user types email
   useEffect(() => {
-    if (documentOrEmail.trim().length > 3) {
-      const match = findCrmUser(documentOrEmail);
+    if (email.trim().length > 3) {
+      const match = findCrmUser(email);
       if (match) {
         setDetectedUser(match);
         if (match.crmCargo === "Proprietário") {
@@ -54,31 +53,31 @@ export default function EntrarPage() {
     } else {
       setDetectedUser(null);
     }
-  }, [documentOrEmail]);
+  }, [email]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setStatusMessage(null);
     
-    // Validar se o usuário existe na base cadastrada do CRM
-    const user = findCrmUser(documentOrEmail);
+    // Validar se o e-mail existe na aba de Usuários do CRM
+    const user = findCrmUser(email);
 
     if (!user) {
       setIsLoading(false);
       setStatusMessage({ 
         type: "error", 
-        text: "Acesso bloqueado: Este CPF/CNPJ ou E-mail não consta na base de usuários cadastrados no CRM Araújo Imóveis." 
+        text: "Acesso negado: Este e-mail não consta na aba de Usuários cadastrados no CRM Araújo Imóveis." 
       });
       return;
     }
 
     setStatusMessage({ 
       type: "success", 
-      text: `Conta autenticada (${user.name})! Redirecionando para o CRM Araújo Imóveis...` 
+      text: `Conta reconhecida como ${user.crmCargo} (${user.name})! Redirecionando para o CRM Araújo Imóveis...` 
     });
 
-    const redirectUrl = getCrmRedirectUrl(user.email || documentOrEmail.trim(), activeRole);
+    const redirectUrl = getCrmRedirectUrl(user.email, password);
 
     setTimeout(() => {
       window.location.href = redirectUrl;
@@ -120,7 +119,7 @@ export default function EntrarPage() {
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                   <span>
-                    <strong>Conta Reconhecida no CRM:</strong> {detectedUser.name} ({detectedUser.crmCargo})
+                    <strong>Usuário Reconhecido no CRM:</strong> {detectedUser.name} ({detectedUser.crmCargo})
                   </span>
                 </div>
               </div>
@@ -143,9 +142,9 @@ export default function EntrarPage() {
                   <p>{statusMessage.text}</p>
                   {statusMessage.type === "error" && (
                     <div className="mt-2 pt-2 border-t border-rose-500/20 flex items-center justify-between gap-2">
-                      <span className="text-[11px] text-rose-300/80">Necessita de um cadastro no CRM?</span>
+                      <span className="text-[11px] text-rose-300/80">E-mail ainda não cadastrado no CRM?</span>
                       <a
-                        href={`https://wa.me/5533999999999?text=${encodeURIComponent(`Olá! Tentei acessar a área do cliente no site com o dado "${documentOrEmail}", mas recebi mensagem de usuário não cadastrado no CRM. Gostaria de solicitar meu cadastro.`)}`}
+                        href={`https://wa.me/5533999999999?text=${encodeURIComponent(`Olá! Tentei acessar a área do cliente no site com o e-mail "${email}", mas não consto na aba de Usuários do CRM. Gostaria de solicitar meu cadastro.`)}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-200 hover:text-white underline shrink-0"
@@ -161,18 +160,18 @@ export default function EntrarPage() {
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
                 <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
-                  CPF / CNPJ Cadastrado no CRM
+                  E-mail Cadastrado no CRM
                 </label>
                 <div className="relative">
                   <input
-                    type="text"
+                    type="email"
                     required
-                    value={documentOrEmail}
-                    onChange={(e) => setDocumentOrEmail(e.target.value)}
-                    placeholder="Digite seu CPF ou CNPJ cadastrado"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="seu.email@exemplo.com"
                     className="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   />
-                  <UserCheck className="w-5 h-5 text-slate-500 absolute right-3.5 top-3.5" />
+                  <Mail className="w-5 h-5 text-slate-500 absolute right-3.5 top-3.5" />
                 </div>
               </div>
 
@@ -211,7 +210,7 @@ export default function EntrarPage() {
                 </label>
 
                 <a
-                  href={`https://wa.me/5533999999999?text=${encodeURIComponent(`Olá! Sou ${activeRole === "locador" ? "Locador/Proprietário" : "Locatário/Inquilino"} na Araújo Imóveis e preciso recuperar minha senha do Portal.`)}`}
+                  href={`https://wa.me/5533999999999?text=${encodeURIComponent(`Olá! Sou usuário na Araújo Imóveis e preciso recuperar minha senha do CRM.`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-400 hover:text-blue-300 font-semibold hover:underline"
