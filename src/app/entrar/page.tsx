@@ -17,7 +17,8 @@ import {
   EyeOff, 
   CheckCircle2, 
   ExternalLink,
-  Building2
+  Building2,
+  AlertTriangle
 } from "lucide-react";
 import { 
   findCrmUser, 
@@ -55,21 +56,33 @@ export default function EntrarPage() {
     }
   }, [documentOrEmail]);
 
-      const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setStatusMessage(null);
     
+    // Validar se o usuário existe na base cadastrada do CRM
+    const user = findCrmUser(documentOrEmail);
+
+    if (!user) {
+      setIsLoading(false);
+      setStatusMessage({ 
+        type: "error", 
+        text: "Acesso bloqueado: Este CPF/CNPJ ou E-mail não consta na base de usuários cadastrados no CRM Araújo Imóveis." 
+      });
+      return;
+    }
+
     setStatusMessage({ 
       type: "success", 
-      text: "Entrando na sua área exclusiva no CRM Araújo Imóveis..." 
+      text: `Conta autenticada (${user.name})! Redirecionando para o CRM Araújo Imóveis...` 
     });
 
-    const role = activeRole === "locatario" ? "inquilino" : "proprietario";
-    const redirectUrl = `https://crmaraujoimoveis.vercel.app/?email=${encodeURIComponent(documentOrEmail.trim())}&password=${encodeURIComponent(password.trim())}&role=${role}`;
+    const redirectUrl = getCrmRedirectUrl(user.email || documentOrEmail.trim(), activeRole);
 
     setTimeout(() => {
       window.location.href = redirectUrl;
-    }, 200);
+    }, 600);
   };
 
   return (
@@ -114,15 +127,34 @@ export default function EntrarPage() {
             )}
 
             {statusMessage && (
-              <div className={`mb-6 p-4 rounded-xl text-xs font-semibold flex items-center gap-3 border ${
+              <div className={`mb-6 p-4 rounded-xl text-xs font-semibold flex flex-col sm:flex-row items-start sm:items-center gap-3 border ${
                 statusMessage.type === "success" 
                   ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/30" 
                   : statusMessage.type === "error"
                   ? "bg-rose-500/10 text-rose-300 border-rose-500/30"
                   : "bg-blue-500/10 text-blue-300 border-blue-500/30"
               }`}>
-                {statusMessage.type === "success" && <CheckCircle2 className="w-5 h-5 shrink-0" />}
-                <span>{statusMessage.text}</span>
+                {statusMessage.type === "success" ? (
+                  <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-400" />
+                ) : (
+                  <AlertTriangle className="w-5 h-5 shrink-0 text-rose-400" />
+                )}
+                <div className="flex-1">
+                  <p>{statusMessage.text}</p>
+                  {statusMessage.type === "error" && (
+                    <div className="mt-2 pt-2 border-t border-rose-500/20 flex items-center justify-between gap-2">
+                      <span className="text-[11px] text-rose-300/80">Necessita de um cadastro no CRM?</span>
+                      <a
+                        href={`https://wa.me/5533999999999?text=${encodeURIComponent(`Olá! Tentei acessar a área do cliente no site com o dado "${documentOrEmail}", mas recebi mensagem de usuário não cadastrado no CRM. Gostaria de solicitar meu cadastro.`)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-200 hover:text-white underline shrink-0"
+                      >
+                        Falar no WhatsApp <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 

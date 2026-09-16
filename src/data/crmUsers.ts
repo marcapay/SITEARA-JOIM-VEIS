@@ -35,17 +35,24 @@ export const CRM_BASE_URL = process.env.NEXT_PUBLIC_CRM_URL || "https://crmarauj
  * Searches for a registered CRM user by email, CPF or name.
  */
 export function findCrmUser(identifier: string): CrmUser | undefined {
-  if (!identifier) return undefined;
-  const cleanSearch = identifier.trim().toLowerCase().replace(/[^\w@.]/g, "");
+  if (!identifier || !identifier.trim()) return undefined;
+  const raw = identifier.trim().toLowerCase();
+  const numericOnly = raw.replace(/\D/g, "");
   
   return CRM_REGISTERED_USERS.find((user) => {
     const cleanEmail = user.email.toLowerCase();
     const cleanCpf = user.cpfCnpj ? user.cpfCnpj.replace(/\D/g, "") : "";
-    const cleanSearchNumeric = cleanSearch.replace(/\D/g, "");
+    const cleanName = user.name.toLowerCase();
     
-    if (cleanEmail === cleanSearch) return true;
-    if (cleanCpf && cleanSearchNumeric && cleanCpf === cleanSearchNumeric) return true;
-    if (user.name.toLowerCase() === cleanSearch) return true;
+    // Match exact email
+    if (cleanEmail === raw) return true;
+    
+    // Match numeric CPF/CNPJ
+    if (numericOnly.length >= 6 && cleanCpf && (cleanCpf === numericOnly || cleanCpf.includes(numericOnly))) return true;
+    
+    // Match user name or email prefix
+    if (cleanName === raw || cleanEmail.split("@")[0] === raw) return true;
+
     return false;
   });
 }
