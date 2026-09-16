@@ -9,13 +9,21 @@ export interface CrmUser {
   siteRole: "locador" | "locatario" | "admin";
 }
 
-// Registered CRM Araújo Imóveis accounts
+// Registered CRM Araújo Imóveis accounts matching crmaraujoimoveis.vercel.app
 export const CRM_REGISTERED_USERS: CrmUser[] = [
   {
-    id: "crm-user-miguel",
-    name: "miguel",
+    id: "crm-user-miguel-pessoal",
+    name: "Miguel",
     email: "miguelmr.pessoal@gmail.com",
     cpfCnpj: "111.222.333-44",
+    crmCargo: "Proprietário",
+    siteRole: "locador"
+  },
+  {
+    id: "crm-user-miguel-biz",
+    name: "Miguel",
+    email: "miguelmr.business@gmail.com",
+    cpfCnpj: "111.222.333-45",
     crmCargo: "Proprietário",
     siteRole: "locador"
   },
@@ -26,13 +34,54 @@ export const CRM_REGISTERED_USERS: CrmUser[] = [
     cpfCnpj: "222.333.444-55",
     crmCargo: "Administrador",
     siteRole: "admin"
+  },
+  {
+    id: "crm-user-inquilino-portal",
+    name: "Inquilino Demo",
+    email: "inquilino@portal.com",
+    cpfCnpj: "444.555.666-77",
+    crmCargo: "Inquilino",
+    siteRole: "locatario"
+  },
+  {
+    id: "crm-user-inquilino-araujo",
+    name: "Inquilino",
+    email: "inquilino@araujo.com",
+    cpfCnpj: "444.555.666-78",
+    crmCargo: "Inquilino",
+    siteRole: "locatario"
+  },
+  {
+    id: "crm-user-proprietario-portal",
+    name: "Proprietário Demo",
+    email: "proprietario@portal.com",
+    cpfCnpj: "333.444.555-66",
+    crmCargo: "Proprietário",
+    siteRole: "locador"
+  },
+  {
+    id: "crm-user-proprietario-araujo",
+    name: "Proprietário",
+    email: "proprietario@araujo.com",
+    cpfCnpj: "333.444.555-67",
+    crmCargo: "Proprietário",
+    siteRole: "locador"
+  },
+  {
+    id: "crm-user-admin-araujo",
+    name: "Administrador",
+    email: "admin@araujo.com",
+    cpfCnpj: "000.000.000-00",
+    crmCargo: "Administrador",
+    siteRole: "admin"
   }
 ];
 
 export const CRM_BASE_URL = process.env.NEXT_PUBLIC_CRM_URL || "https://crmaraujoimoveis.vercel.app";
 
 /**
- * Searches for a registered CRM user by email, CPF or name.
+ * Searches for a registered CRM user by exact email, exact CPF/CNPJ or full name.
+ * Loose partial matches are strictly forbidden to prevent unauthorized/empty sessions.
  */
 export function findCrmUser(identifier: string): CrmUser | undefined {
   if (!identifier || !identifier.trim()) return undefined;
@@ -44,14 +93,14 @@ export function findCrmUser(identifier: string): CrmUser | undefined {
     const cleanCpf = user.cpfCnpj ? user.cpfCnpj.replace(/\D/g, "") : "";
     const cleanName = user.name.toLowerCase();
     
-    // Match exact email
+    // 1. Exact email match
     if (cleanEmail === raw) return true;
     
-    // Match numeric CPF/CNPJ
-    if (numericOnly.length >= 6 && cleanCpf && (cleanCpf === numericOnly || cleanCpf.includes(numericOnly))) return true;
+    // 2. Exact CPF/CNPJ numeric match
+    if (numericOnly.length >= 8 && cleanCpf && cleanCpf === numericOnly) return true;
     
-    // Match user name or email prefix
-    if (cleanName === raw || cleanEmail.split("@")[0] === raw) return true;
+    // 3. Exact full name match
+    if (cleanName === raw) return true;
 
     return false;
   });
@@ -65,10 +114,10 @@ export function getCrmRedirectUrl(identifier: string, activeRole?: "locatario" |
   const crmUser = findCrmUser(identifier);
   
   let crmRoleParam = activeRole === "locador" ? "proprietario" : "inquilino";
-  let userIdentifier = identifier || "cliente@araujo.com";
+  let userEmail = identifier;
 
   if (crmUser) {
-    userIdentifier = crmUser.email;
+    userEmail = crmUser.email;
     if (crmUser.crmCargo === "Proprietário") {
       crmRoleParam = "proprietario";
     } else if (crmUser.crmCargo === "Inquilino") {
@@ -82,8 +131,8 @@ export function getCrmRedirectUrl(identifier: string, activeRole?: "locatario" |
     role: crmRoleParam,
     portal: crmRoleParam,
     area: crmRoleParam,
-    identifier: userIdentifier,
-    email: userIdentifier
+    identifier: userEmail,
+    email: userEmail
   });
 
   return `${CRM_BASE_URL}/?${queryParams.toString()}`;
