@@ -55,50 +55,21 @@ export default function EntrarPage() {
     }
   }, [documentOrEmail]);
 
-    const handleSubmit = async (e: React.FormEvent) => {
+      const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    
     setStatusMessage({ 
-      type: "info", 
-      text: "Verificando credenciais no CRM Araújo Imóveis..." 
+      type: "success", 
+      text: "Entrando na sua área exclusiva no CRM Araújo Imóveis..." 
     });
 
-    try {
-      const response = await fetch("https://crmaraujoimoveis.vercel.app/api/auth", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: documentOrEmail,
-          password: password
-        })
-      });
+    const role = activeRole === "locatario" ? "inquilino" : "proprietario";
+    const redirectUrl = `https://crmaraujoimoveis.vercel.app/?email=${encodeURIComponent(documentOrEmail.trim())}&password=${encodeURIComponent(password.trim())}&role=${role}`;
 
-      const data = await response.json();
-
-      if (data.success && data.portalUrl) {
-        setStatusMessage({ 
-          type: "success", 
-          text: "Usuário autenticado no CRM! Redirecionando para o seu painel..." 
-        });
-
-        setTimeout(() => {
-          window.location.href = data.portalUrl;
-        }, 500);
-      } else {
-        setStatusMessage({ 
-          type: "error", 
-          text: data.message || "Conta não cadastrada ou senha incorreta no CRM Araújo Imóveis." 
-        });
-        setIsLoading(false);
-      }
-    } catch (err) {
-      console.error("Erro ao conectar à API do CRM:", err);
-      setStatusMessage({ 
-        type: "error", 
-        text: "Erro de conexão com o CRM. Tente novamente em instantes." 
-      });
-      setIsLoading(false);
-    }
+    setTimeout(() => {
+      window.location.href = redirectUrl;
+    }, 200);
   };
 
   return (
