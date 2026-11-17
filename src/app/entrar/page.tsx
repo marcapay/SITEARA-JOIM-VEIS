@@ -20,8 +20,11 @@ import {
   AlertTriangle
 } from "lucide-react";
 import { 
+  CRM_REGISTERED_USERS,
+  fetchLiveCrmUsers,
   findCrmUser, 
   getCrmRedirectUrl, 
+  normalizeCrmRole,
   CrmUser,
   CRM_BASE_URL
 } from "@/data/crmUsers";
@@ -33,13 +36,27 @@ export default function EntrarPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [crmUsers, setCrmUsers] = useState<CrmUser[]>(CRM_REGISTERED_USERS);
   const [detectedUser, setDetectedUser] = useState<CrmUser | null>(null);
   const [statusMessage, setStatusMessage] = useState<{ type: "success" | "error" | "info"; text: string } | null>(null);
+
+  // Carrega a lista de usuários cadastrados diretamente da API do CRM em tempo real
+  useEffect(() => {
+    let active = true;
+    fetchLiveCrmUsers().then((liveList) => {
+      if (active && liveList.length > 0) {
+        setCrmUsers(liveList);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // Auto-detect CRM user role as the user types email
   useEffect(() => {
     if (email.trim().length > 3) {
-      const match = findCrmUser(email);
+      const match = findCrmUser(email, crmUsers);
       if (match) {
         setDetectedUser(match);
         if (match.crmCargo === "Proprietário") {
@@ -53,15 +70,51 @@ export default function EntrarPage() {
     } else {
       setDetectedUser(null);
     }
-  }, [email]);
+  }, [email, crmUsers]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setStatusMessage(null);
-    
-    // Validar se o e-mail existe na aba de Usuários do CRM
-    const user = findCrmUser(email);
+
+    let latestUsers = crmUsers;
+    let user = findCrmUser(email, latestUsers);
+
+    // Caso não esteja no cache inicial, consulta a API do CRM em tempo real
+    if (!user) {
+      latestUsers = await fetchLiveCrmUsers();
+      setCrmUsers(latestUsers);
+      user = findCrmUser(email, latestUsers);
+    }
+
+    // Fallback adicional no endpoint de autenticação direta do CRM
+    if (!user) {
+      try {
+        const authRes = await fetch(`${CRM_BASE_URL}/api/auth`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: email.trim(),
+            password: password.trim(),
+          }),
+        });
+        if (authRes.ok) {
+          const authData = await authRes.json();
+          if (authData?.success && authData?.user) {
+            const { crmCargo, siteRole } = normalizeCrmRole(authData.user.role);
+            user = {
+              id: String(authData.user.id || `crm-${email.trim().toLowerCase()}`),
+              name: String(authData.user.name || email.trim().split("@")[0]),
+              email: String(authData.user.email || email.trim().toLowerCase()),
+              crmCargo,
+              siteRole,
+            };
+          }
+        }
+      } catch {
+        // Ignora erro de rede e segue validação abaixo
+      }
+    }
 
     if (!user) {
       setIsLoading(false);
@@ -77,11 +130,11 @@ export default function EntrarPage() {
       text: `Conta reconhecida como ${user.crmCargo} (${user.name})! Redirecionando para o CRM Araújo Imóveis...` 
     });
 
-    const redirectUrl = getCrmRedirectUrl(user.email, password);
+    const redirectUrl = getCrmRedirectUrl(user.email, password, latestUsers, activeRole);
 
     setTimeout(() => {
-      window.location.href = redirectUrl;
-    }, 600);
+      window.location.assign(redirectUrl);
+    }, 300);
   };
 
   return (

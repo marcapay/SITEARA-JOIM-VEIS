@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
   const isProduction = process.env.APP_ENV === 'production';
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://sitearaujoimoveis.vercel.app';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.araujoimoveiscaratinga.com.br';
 
   if (!isProduction) {
     return {

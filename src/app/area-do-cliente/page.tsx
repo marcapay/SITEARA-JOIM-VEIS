@@ -2,18 +2,26 @@
 
 import { useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { getCrmRedirectUrl } from "@/data/crmUsers";
+import { fetchLiveCrmUsers, getCrmRedirectUrl, CRM_REGISTERED_USERS } from "@/data/crmUsers";
 
 function AreaDoClienteContent() {
   const searchParams = useSearchParams();
   const roleParam = searchParams.get("role") || searchParams.get("portal") || "";
   const identifierParam = searchParams.get("identifier") || searchParams.get("email") || "";
+  const passwordParam = searchParams.get("password") || searchParams.get("pass") || "";
 
   useEffect(() => {
     const activeRole = roleParam === "inquilino" || roleParam === "locatario" ? "locatario" : "locador";
-    const targetUrl = getCrmRedirectUrl(identifierParam, activeRole);
-    window.location.href = targetUrl;
-  }, [roleParam, identifierParam]);
+    fetchLiveCrmUsers()
+      .then((liveUsers) => {
+        const targetUrl = getCrmRedirectUrl(identifierParam, passwordParam, liveUsers, activeRole);
+        window.location.assign(targetUrl);
+      })
+      .catch(() => {
+        const targetUrl = getCrmRedirectUrl(identifierParam, passwordParam, CRM_REGISTERED_USERS, activeRole);
+        window.location.assign(targetUrl);
+      });
+  }, [roleParam, identifierParam, passwordParam]);
 
   return (
     <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-4">
