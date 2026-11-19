@@ -8,6 +8,7 @@ import {
   PROPERTIES_DATA, 
   Property,
   CRM_BASE_URL,
+  CLOUD_STORE_URL,
   formatCurrency, 
   getPropertyWhatsAppLink, 
   getWhatsAppLink 
@@ -53,20 +54,37 @@ export default function PropertyDetailsPage({ params }: PropertyDetailsPageProps
     let isMounted = true;
     async function loadCrmProperty() {
       try {
-        const res = await fetch(`${CRM_BASE_URL}/api/properties`, { cache: "no-store" });
-        if (res.ok) {
-          const liveProps: Property[] = await res.json();
-          const cleanId = (id || '').toLowerCase().replace(/^#+/, '').trim();
-          const found = liveProps.find(
-            p => (p.id || '').toLowerCase() === cleanId || 
-                 (p.code || '').toLowerCase().replace(/^#+/, '') === cleanId ||
-                 (p.id || '').toLowerCase() === `imovel-${cleanId}`
-          );
-          if (isMounted && found) {
-            setProperty(found);
-            setLoading(false);
-            return;
+        let liveProps: Property[] = [];
+        try {
+          const res = await fetch(`${CRM_BASE_URL}/api/properties`, { cache: "no-store" });
+          if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data) && data.length > 0) liveProps = data;
           }
+        } catch (e) {}
+
+        if (liveProps.length === 0 && CLOUD_STORE_URL) {
+          try {
+            const cloudRes = await fetch(CLOUD_STORE_URL, { cache: "no-store" });
+            if (cloudRes.ok) {
+              const cloudJson = await cloudRes.json();
+              if (cloudJson?.data?.list && Array.isArray(cloudJson.data.list)) {
+                liveProps = cloudJson.data.list;
+              }
+            }
+          } catch (cloudErr) {}
+        }
+
+        const cleanId = (id || '').toLowerCase().replace(/^#+/, '').trim();
+        const found = liveProps.find(
+          p => (p.id || '').toLowerCase() === cleanId || 
+               (p.code || '').toLowerCase().replace(/^#+/, '') === cleanId ||
+               (p.id || '').toLowerCase() === `imovel-${cleanId}`
+        );
+        if (isMounted && found) {
+          setProperty(found);
+          setLoading(false);
+          return;
         }
       } catch (e) {
         console.error("Erro ao carregar imóvel dinâmico do CRM:", e);
