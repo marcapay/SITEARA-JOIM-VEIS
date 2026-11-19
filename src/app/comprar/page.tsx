@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { SearchFilter } from "@/components/SearchFilter";
 import { PropertyCard } from "@/components/PropertyCard";
-import { PROPERTIES_DATA } from "@/data/properties";
+import { PROPERTIES_DATA, getLiveProperties } from "@/data/properties";
 import { Tag } from "lucide-react";
 
 export const metadata = {
@@ -9,8 +9,9 @@ export const metadata = {
   description: "Confira as melhores opções de imóveis para comprar em Caratinga e região. Casas, apartamentos, coberturas e terrenos com garantia Araújo Imóveis.",
 };
 
-export default function ComprarPage() {
-  const buyProperties = PROPERTIES_DATA.filter((p) => p.transaction === "comprar");
+export default async function ComprarPage() {
+  const allProperties = await getLiveProperties();
+  const buyProperties = allProperties.filter((p) => p.transaction === "comprar");
 
   return (
     <div className="py-8 sm:py-12 px-4 max-w-7xl mx-auto w-full space-y-8">

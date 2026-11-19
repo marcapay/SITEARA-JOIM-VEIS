@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { SearchFilter } from "@/components/SearchFilter";
 import { PropertyCard } from "@/components/PropertyCard";
-import { PROPERTIES_DATA } from "@/data/properties";
+import { PROPERTIES_DATA, getLiveProperties } from "@/data/properties";
 import { Key } from "lucide-react";
 
 export const metadata = {
@@ -9,8 +9,9 @@ export const metadata = {
   description: "Alugue seu imóvel residencial ou comercial sem burocracia na Araújo Imóveis. Casas, apartamentos e pontos comerciais em Caratinga.",
 };
 
-export default function AlugarPage() {
-  const rentProperties = PROPERTIES_DATA.filter((p) => p.transaction === "alugar");
+export default async function AlugarPage() {
+  const allProperties = await getLiveProperties();
+  const rentProperties = allProperties.filter((p) => p.transaction === "alugar");
 
   return (
     <div className="py-8 sm:py-12 px-4 max-w-7xl mx-auto w-full space-y-8">

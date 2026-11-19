@@ -321,3 +321,76 @@ export function getPropertyWhatsAppLink(property: Property): string {
   const text = `Olá Araújo Imóveis! Tenho interesse no imóvel código #${property.code}: ${property.title} (${property.neighborhood}, ${property.city}) - ${formatCurrency(property.price)}. Gostaria de agendar uma visita!`;
   return `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(text)}`;
 }
+
+export const CRM_BASE_URL = process.env.NEXT_PUBLIC_CRM_URL || "https://crmaraujoimoveis.vercel.app";
+export const CLOUD_STORE_URL = "https://api.restful-api.dev/objects/ff808181a09d98f701a1f4330be964d4";
+
+/**
+ * Busca a lista de imóveis cadastrados via Fichas no CRM em tempo real e mescla com a base do site.
+ * Os imóveis recém-captados no CRM são exibidos prioritariamente no topo das listagens e no Destaque da Home.
+ */
+export async function getLiveProperties(): Promise<Property[]> {
+  let liveCrmProps: Property[] = [];
+
+  // 1. Tenta carregar do endpoint oficial do CRM
+  try {
+    const res = await fetch(`${CRM_BASE_URL}/api/properties`, {
+      method: "GET",
+      cache: "no-store",
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) {
+        liveCrmProps = data;
+      }
+    }
+  } catch (err) {
+    console.warn("CRM /api/properties indisponível no momento, tentando fallback de nuvem:", err);
+  }
+
+  // 2. Se o CRM não respondeu, consulta o repositório de nuvem compartilhado
+  if (liveCrmProps.length === 0) {
+    try {
+      const cloudRes = await fetch(CLOUD_STORE_URL, {
+        method: "GET",
+        cache: "no-store",
+      });
+      if (cloudRes.ok) {
+        const cloudJson = await cloudRes.json();
+        if (cloudJson?.data?.list && Array.isArray(cloudJson.data.list)) {
+          liveCrmProps = cloudJson.data.list;
+        }
+      }
+    } catch (cloudErr) {
+      console.warn("Fallback de nuvem indisponível:", cloudErr);
+    }
+  }
+
+  if (liveCrmProps.length > 0) {
+    const liveCodes = new Set(liveCrmProps.map(p => (p.code || '').toLowerCase().replace(/^#+/, '')));
+    const liveIds = new Set(liveCrmProps.map(p => (p.id || '').toLowerCase()));
+    
+    const filteredStatic = PROPERTIES_DATA.filter(
+      p => !liveCodes.has((p.code || '').toLowerCase().replace(/^#+/, '')) && !liveIds.has((p.id || '').toLowerCase())
+    );
+
+    return [...liveCrmProps, ...filteredStatic];
+  }
+
+  return PROPERTIES_DATA;
+}
+
+/**
+ * Busca um imóvel específico pelo ID ou Código (#VT-0001, VT-0001, etc.) tanto estático quanto vindo do CRM
+ */
+export async function getPropertyByIdOrCode(idOrCode: string): Promise<Property | undefined> {
+  const all = await getLiveProperties();
+  const search = (idOrCode || '').toLowerCase().replace(/^#+/, '').trim();
+  return all.find(
+    p => (p.id || '').toLowerCase() === search || 
+         (p.code || '').toLowerCase().replace(/^#+/, '') === search ||
+         (p.id || '').toLowerCase() === `imovel-${search}`
+  );
+}
+

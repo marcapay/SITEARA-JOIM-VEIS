@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { SearchFilter } from "@/components/SearchFilter";
 import { PropertyCard } from "@/components/PropertyCard";
-import { PROPERTIES_DATA } from "@/data/properties";
+import { PROPERTIES_DATA, getLiveProperties } from "@/data/properties";
 import { TrendingUp, Sparkles } from "lucide-react";
 
 export const metadata = {
@@ -9,8 +9,9 @@ export const metadata = {
   description: "Conheça as melhores oportunidades de investimento imobiliário, empreendimentos e lançamentos na planta em Caratinga - MG.",
 };
 
-export default function LancamentosPage() {
-  const launchProperties = PROPERTIES_DATA.filter((p) => p.transaction === "lancamento" || p.launch);
+export default async function LancamentosPage() {
+  const allProperties = await getLiveProperties();
+  const launchProperties = allProperties.filter((p) => p.transaction === "lancamento" || p.launch);
 
   return (
     <div className="py-8 sm:py-12 px-4 max-w-7xl mx-auto w-full space-y-8">

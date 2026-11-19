@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { SearchFilter } from "@/components/SearchFilter";
 import { PropertyCard } from "@/components/PropertyCard";
-import { PROPERTIES_DATA, Property, PROPERTY_TYPES } from "@/data/properties";
+import { PROPERTIES_DATA, Property, PROPERTY_TYPES, getLiveProperties } from "@/data/properties";
 import { Search, ArrowUpDown, FilterX, Building2 } from "lucide-react";
 import Link from "next/link";
 
@@ -34,7 +34,9 @@ async function PropertiesList({ searchParams }: SearchParamsProps) {
   const vagas = params.vagas ? Number(params.vagas) : null;
   const ordem = params.ordem || "relevancia";
 
-  const filteredProperties = PROPERTIES_DATA.filter((property: Property) => {
+  const allProperties = await getLiveProperties();
+
+  const filteredProperties = allProperties.filter((property: Property) => {
     if (transacao && transacao !== "todos" && property.transaction !== transacao) {
       return false;
     }

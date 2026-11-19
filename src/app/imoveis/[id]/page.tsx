@@ -1,11 +1,13 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { 
   PROPERTIES_DATA, 
+  Property,
+  CRM_BASE_URL,
   formatCurrency, 
   getPropertyWhatsAppLink, 
   getWhatsAppLink 
@@ -36,13 +38,44 @@ interface PropertyDetailsPageProps {
 export default function PropertyDetailsPage({ params }: PropertyDetailsPageProps) {
   const { id } = use(params);
 
-  const property = PROPERTIES_DATA.find(
-    (p) => p.id === id || p.code.toLowerCase() === id.toLowerCase()
-  );
+  const [property, setProperty] = useState<Property | null>(() => {
+    const cleanId = (id || '').toLowerCase().replace(/^#+/, '').trim();
+    return PROPERTIES_DATA.find(
+      (p) => (p.id || '').toLowerCase() === cleanId || 
+             (p.code || '').toLowerCase().replace(/^#+/, '') === cleanId ||
+             (p.id || '').toLowerCase() === `imovel-${cleanId}`
+    ) || null;
+  });
+  const [loading, setLoading] = useState(!property);
 
-  if (!property) {
-    notFound();
-  }
+  useEffect(() => {
+    if (property) return;
+    let isMounted = true;
+    async function loadCrmProperty() {
+      try {
+        const res = await fetch(`${CRM_BASE_URL}/api/properties`, { cache: "no-store" });
+        if (res.ok) {
+          const liveProps: Property[] = await res.json();
+          const cleanId = (id || '').toLowerCase().replace(/^#+/, '').trim();
+          const found = liveProps.find(
+            p => (p.id || '').toLowerCase() === cleanId || 
+                 (p.code || '').toLowerCase().replace(/^#+/, '') === cleanId ||
+                 (p.id || '').toLowerCase() === `imovel-${cleanId}`
+          );
+          if (isMounted && found) {
+            setProperty(found);
+            setLoading(false);
+            return;
+          }
+        }
+      } catch (e) {
+        console.error("Erro ao carregar imóvel dinâmico do CRM:", e);
+      }
+      if (isMounted) setLoading(false);
+    }
+    loadCrmProperty();
+    return () => { isMounted = false; };
+  }, [id, property]);
 
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
@@ -53,6 +86,19 @@ export default function PropertyDetailsPage({ params }: PropertyDetailsPageProps
   const [scheduleName, setScheduleName] = useState("");
   const [schedulePhone, setSchedulePhone] = useState("");
   const [scheduleDate, setScheduleDate] = useState("");
+
+  if (loading) {
+    return (
+      <div className="py-24 text-center max-w-7xl mx-auto px-4">
+        <div className="inline-block w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-slate-600 font-medium text-base">Carregando detalhes do imóvel da Araújo Imóveis...</p>
+      </div>
+    );
+  }
+
+  if (!property) {
+    notFound();
+  }
 
   const similarProperties = PROPERTIES_DATA.filter(
     (p) => p.id !== property.id && (p.neighborhood === property.neighborhood || p.type === property.type)
@@ -123,6 +169,7 @@ export default function PropertyDetailsPage({ params }: PropertyDetailsPageProps
             src={property.images[activeImageIndex]}
             alt={`${property.title} - Foto ${activeImageIndex + 1}`}
             fill
+            unoptimized={typeof property.images[activeImageIndex] === 'string' && property.images[activeImageIndex].startsWith('data:')}
             className="object-cover cursor-pointer transition-all duration-300"
             onClick={() => setIsGalleryOpen(true)}
             priority
@@ -181,7 +228,13 @@ export default function PropertyDetailsPage({ params }: PropertyDetailsPageProps
                   activeImageIndex === idx ? 'border-blue-600 ring-2 ring-blue-300 scale-105' : 'border-transparent opacity-75 hover:opacity-100'
                 }`}
               >
-                <Image src={img} alt="" fill className="object-cover" />
+                <Image 
+                  src={img} 
+                  alt="" 
+                  fill 
+                  unoptimized={typeof img === 'string' && img.startsWith('data:')}
+                  className="object-cover" 
+                />
               </button>
             ))}
           </div>
@@ -208,6 +261,7 @@ export default function PropertyDetailsPage({ params }: PropertyDetailsPageProps
               src={property.images[activeImageIndex]}
               alt={property.title}
               fill
+              unoptimized={typeof property.images[activeImageIndex] === 'string' && property.images[activeImageIndex].startsWith('data:')}
               className="object-contain"
             />
             {property.images.length > 1 && (

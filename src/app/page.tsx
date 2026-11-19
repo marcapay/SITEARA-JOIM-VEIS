@@ -3,11 +3,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { SearchFilter } from "@/components/SearchFilter";
 import { PropertyCard } from "@/components/PropertyCard";
-import { PROPERTIES_DATA, NEIGHBORHOODS, getWhatsAppLink } from "@/data/properties";
+import { PROPERTIES_DATA, NEIGHBORHOODS, getWhatsAppLink, getLiveProperties } from "@/data/properties";
 import { Tag, Key, Sparkles, PlusCircle, ShieldCheck, MapPin, ChevronRight, MessageCircle, Send, CheckCircle2 } from "lucide-react";
 
-export default function Home() {
-  const featuredProperties = PROPERTIES_DATA.filter((p) => p.featured);
+export default async function Home() {
+  const allProperties = await getLiveProperties();
+  const featuredProperties = allProperties.filter((p) => p.featured);
 
   return (
     <>

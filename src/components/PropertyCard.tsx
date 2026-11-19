@@ -17,9 +17,10 @@ export function PropertyCard({ property }: PropertyCardProps) {
       <div className="relative h-56 sm:h-64 w-full bg-slate-200 overflow-hidden">
         <Link href={`/imoveis/${property.id}`} className="block w-full h-full">
           <Image
-            src={property.images[0]}
+            src={property.images && property.images[0] ? property.images[0] : "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=1200&auto=format&fit=crop"}
             alt={property.title}
             fill
+            unoptimized={typeof property.images?.[0] === 'string' && property.images[0].startsWith('data:')}
             className="object-cover group-hover:scale-105 transition-transform duration-500"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           />
