@@ -4,6 +4,9 @@ import { PropertyCard } from "@/components/PropertyCard";
 import { PROPERTIES_DATA, getLiveProperties } from "@/data/properties";
 import { Tag } from "lucide-react";
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export const metadata = {
   title: "Imóveis à Venda em Caratinga | Comprar Casas e Apartamentos",
   description: "Confira as melhores opções de imóveis para comprar em Caratinga e região. Casas, apartamentos, coberturas e terrenos com garantia Araújo Imóveis.",

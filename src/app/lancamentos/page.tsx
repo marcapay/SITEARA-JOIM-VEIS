@@ -4,6 +4,9 @@ import { PropertyCard } from "@/components/PropertyCard";
 import { PROPERTIES_DATA, getLiveProperties } from "@/data/properties";
 import { TrendingUp, Sparkles } from "lucide-react";
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export const metadata = {
   title: "Investimentos Imobiliários em Caratinga | Araújo Imóveis",
   description: "Conheça as melhores oportunidades de investimento imobiliário, empreendimentos e lançamentos na planta em Caratinga - MG.",

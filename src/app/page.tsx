@@ -3,8 +3,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { SearchFilter } from "@/components/SearchFilter";
 import { PropertyCard } from "@/components/PropertyCard";
+import { FeaturedPropertiesGrid } from "@/components/FeaturedPropertiesGrid";
 import { PROPERTIES_DATA, NEIGHBORHOODS, getWhatsAppLink, getLiveProperties } from "@/data/properties";
 import { Tag, Key, Sparkles, PlusCircle, ShieldCheck, MapPin, ChevronRight, MessageCircle, Send, CheckCircle2 } from "lucide-react";
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export default async function Home() {
   const allProperties = await getLiveProperties();
@@ -116,11 +120,7 @@ export default async function Home() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {featuredProperties.map((property) => (
-            <PropertyCard key={property.id} property={property} />
-          ))}
-        </div>
+        <FeaturedPropertiesGrid initialProperties={featuredProperties} />
       </section>
 
       {/* 4. Bairros ou Regiões Mais Procuradas */}

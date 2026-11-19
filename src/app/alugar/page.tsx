@@ -4,6 +4,9 @@ import { PropertyCard } from "@/components/PropertyCard";
 import { PROPERTIES_DATA, getLiveProperties } from "@/data/properties";
 import { Key } from "lucide-react";
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export const metadata = {
   title: "Imóveis para Alugar em Caratinga | Locação Residencial e Comercial",
   description: "Alugue seu imóvel residencial ou comercial sem burocracia na Araújo Imóveis. Casas, apartamentos e pontos comerciais em Caratinga.",

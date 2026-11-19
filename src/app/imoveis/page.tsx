@@ -5,6 +5,9 @@ import { PROPERTIES_DATA, Property, PROPERTY_TYPES, getLiveProperties } from "@/
 import { Search, ArrowUpDown, FilterX, Building2 } from "lucide-react";
 import Link from "next/link";
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export const metadata = {
   title: "Catálogo e Busca de Imóveis | Araújo Imóveis - Caratinga/MG",
   description: "Encontre imóveis para alugar, comprar e lançamentos em Caratinga e região com busca interativa e filtros por tipo, bairro, preço e quartos.",
