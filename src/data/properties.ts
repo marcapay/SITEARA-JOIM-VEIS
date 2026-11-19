@@ -20,6 +20,7 @@ export interface Property {
   images: string[];
   featured?: boolean;
   launch?: boolean;
+  fichaId?: string;
   status: 'Disponível' | 'Reservado' | 'Vendido';
 }
 

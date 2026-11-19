@@ -40,12 +40,13 @@ export default function PropertyDetailsPage({ params }: PropertyDetailsPageProps
   const { id } = use(params);
 
   const [property, setProperty] = useState<Property | null>(() => {
-    const cleanId = (id || '').toLowerCase().replace(/^#+/, '').trim();
-    return PROPERTIES_DATA.find(
-      (p) => (p.id || '').toLowerCase() === cleanId || 
-             (p.code || '').toLowerCase().replace(/^#+/, '') === cleanId ||
-             (p.id || '').toLowerCase() === `imovel-${cleanId}`
-    ) || null;
+    const cleanId = decodeURIComponent(id || '').toLowerCase().replace(/^#+/, '').trim();
+    const bareId = cleanId.replace(/^imovel-/, '');
+    return PROPERTIES_DATA.find((p) => {
+      const pId = (p.id || '').toLowerCase();
+      const pCode = (p.code || '').toLowerCase().replace(/^#+/, '');
+      return pId === cleanId || pId === `imovel-${cleanId}` || pId === `imovel-${bareId}` || pCode === cleanId || pCode === bareId;
+    }) || null;
   });
   const [loading, setLoading] = useState(!property);
 
@@ -75,12 +76,20 @@ export default function PropertyDetailsPage({ params }: PropertyDetailsPageProps
           } catch (cloudErr) {}
         }
 
-        const cleanId = (id || '').toLowerCase().replace(/^#+/, '').trim();
-        const found = liveProps.find(
-          p => (p.id || '').toLowerCase() === cleanId || 
-               (p.code || '').toLowerCase().replace(/^#+/, '') === cleanId ||
-               (p.id || '').toLowerCase() === `imovel-${cleanId}`
-        );
+        const cleanId = decodeURIComponent(id || '').toLowerCase().replace(/^#+/, '').trim();
+        const bareId = cleanId.replace(/^imovel-/, '');
+        const found = liveProps.find(p => {
+          const pId = (p.id || '').toLowerCase();
+          const pCode = (p.code || '').toLowerCase().replace(/^#+/, '');
+          const pFicha = (p.fichaId || '').toLowerCase();
+          return pId === cleanId ||
+                 pId === `imovel-${cleanId}` ||
+                 pId === `imovel-${bareId}` ||
+                 pCode === cleanId ||
+                 pCode === bareId ||
+                 pFicha === cleanId ||
+                 pFicha === bareId;
+        });
         if (isMounted && found) {
           setProperty(found);
           setLoading(false);
