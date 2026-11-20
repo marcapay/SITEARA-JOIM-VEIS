@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { PlusCircle, ShieldCheck, CheckCircle2, Send, MessageCircle, ImagePlus, X } from "lucide-react";
+import { PlusCircle, ShieldCheck, CheckCircle2, Send, MessageCircle, ImagePlus, X, MapPin, Navigation } from "lucide-react";
 import { CRM_BASE_URL, CLOUD_STORE_URL } from "@/data/properties";
 
 interface UploadedPreview {
@@ -60,6 +60,8 @@ export default function AnunciarPage() {
   const [propertyType, setPropertyType] = useState("Casa");
   const [transaction, setTransaction] = useState("Venda");
   const [neighborhood, setNeighborhood] = useState("");
+  const [locationInput, setLocationInput] = useState("");
+  const [isGettingGps, setIsGettingGps] = useState(false);
   const [expectedPrice, setExpectedPrice] = useState("");
   const [details, setDetails] = useState("");
   const [images, setImages] = useState<UploadedPreview[]>([]);
@@ -67,6 +69,28 @@ export default function AnunciarPage() {
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleGetCurrentLocation = () => {
+    if (typeof navigator === "undefined" || !("geolocation" in navigator)) {
+      alert("Seu navegador não suporta captura automática de GPS. Digite o endereço ou cole o link do Google Maps.");
+      return;
+    }
+    setIsGettingGps(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude.toFixed(6);
+        const lng = pos.coords.longitude.toFixed(6);
+        const mapsUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+        setLocationInput((prev) => (prev.trim() ? `${prev.trim()} (${mapsUrl})` : mapsUrl));
+        setIsGettingGps(false);
+      },
+      () => {
+        setIsGettingGps(false);
+        alert("Não foi possível obter o GPS automaticamente. Você pode digitar o endereço ou colar o link do Google Maps.");
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -106,6 +130,11 @@ export default function AnunciarPage() {
     const numericPrice = Number(expectedPrice.replace(/[^\d]/g, "")) || "";
     const autoCode = `AN-${Date.now().toString().slice(-4)}`;
 
+    const rawLoc = locationInput.trim();
+    const urlMatch = rawLoc.match(/https?:\/\/[^\s)]+/i);
+    const extractedMapUrl = urlMatch ? urlMatch[0] : "";
+    const addressText = rawLoc || `${neighborhood.trim()} (${transaction})`;
+
     const provisionalFicha = {
       id: `ficha_site_${Date.now()}`,
       codigoImovel: autoCode,
@@ -116,10 +145,10 @@ export default function AnunciarPage() {
       horarioContatoProprietario: "Comercial (08:00 às 18:00)",
       linkWhatsapp: cleanPhone ? `https://wa.me/55${cleanPhone}` : "",
       tipoImovel: propertyType,
-      enderecoImovel: `${neighborhood.trim()} (${transaction})`,
+      enderecoImovel: addressText,
       bairroImovel: neighborhood.trim(),
       pontoReferenciaImovel: "",
-      linkLocalizacaoImovel: "",
+      linkLocalizacaoImovel: extractedMapUrl,
       ocupacaoImovel: "Vazio",
       nomeAcesso: name.trim(),
       telefoneAcesso: phone.trim(),
@@ -130,7 +159,7 @@ export default function AnunciarPage() {
       animaisImovel: "Não",
       observacoesImovel: `[Enviado pelo Site para Análise] Modalidade: ${transaction} | Preço Pretendido: ${
         expectedPrice.trim() || "A combinar"
-      }${details.trim() ? ` | Descrição: ${details.trim()}` : ""}`,
+      }${rawLoc ? ` | Localização: ${rawLoc}` : ""}${details.trim() ? ` | Descrição: ${details.trim()}` : ""}`,
       imagensImovel: images.map((img) => img.dataUrl),
       finalidadeImovel: transaction === "Aluguel" ? "alugar" : "comprar",
       valorImovel: numericPrice,
@@ -177,46 +206,25 @@ export default function AnunciarPage() {
       // 2. Fallback direto na nuvem compartilhada do CRM para garantir 100% de entrega na aba Ficha
       if (!savedViaCrmApi) {
         try {
-          const ptrRes = await fetch("https://keyvalue.immanuel.co/api/KeyVal/GetValue/araujo_imoveis_crm_users_v2/araujo_properties_store_ptr", { cache: "no-store" });
-          let existingData: any = {};
-          if (ptrRes.ok) {
-            const raw = await ptrRes.text();
-            if (raw && raw !== '""' && raw !== '"null"') {
-              const clean = raw.replace(/"/g, '').replace(/-/g, '+').replace(/_/g, '/');
-              const padded = clean + '='.repeat((4 - clean.length % 4) % 4);
-              const url = atob(padded);
-              if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
-                const dataRes = await fetch(url, { cache: "no-store" });
-                if (dataRes.ok) existingData = await dataRes.json();
-              }
-            }
-          }
-          const existingFichas = Array.isArray(existingData?.fichas) ? existingData.fichas : [];
-          const existingList = Array.isArray(existingData?.list) ? existingData.list : [];
-          const existingDeleted = Array.isArray(existingData?.deletedFichaIds) ? existingData.deletedFichaIds : [];
+          const cloudRes = await fetch(CLOUD_STORE_URL, { cache: "no-store" });
+          const cloudJson = cloudRes.ok ? await cloudRes.json() : {};
+          const existingData = cloudJson?.data || {};
+          const existingFichas = Array.isArray(existingData.fichas) ? existingData.fichas : [];
+          const existingList = Array.isArray(existingData.list) ? existingData.list : [];
+          const existingDeleted = Array.isArray(existingData.deletedFichaIds) ? existingData.deletedFichaIds : [];
 
-          const newPayload = {
-            updatedAt: new Date().toISOString(),
-            list: existingList,
-            fichas: [provisionalFicha, ...existingFichas.filter((f: any) => f?.id !== provisionalFicha.id)],
-            deletedFichaIds: existingDeleted,
-          };
-
-          const dpRes = await fetch("https://dpaste.org/api/", {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: new URLSearchParams({
-              content: JSON.stringify(newPayload),
-              expiry_days: "365",
-              format: "url",
+          await fetch(CLOUD_STORE_URL, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: "araujo_properties_store",
+              data: {
+                list: existingList,
+                fichas: [provisionalFicha, ...existingFichas],
+                deletedFichaIds: existingDeleted,
+              },
             }),
           });
-          if (dpRes.ok) {
-            const dpUrl = (await dpRes.text()).trim();
-            const rawUrl = `${dpUrl}/raw`;
-            const encoded = btoa(rawUrl).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
-            await fetch(`https://keyvalue.immanuel.co/api/KeyVal/UpdateValue/araujo_imoveis_crm_users_v2/araujo_properties_store_ptr/${encoded}`, { method: "POST" });
-          }
         } catch {}
       }
     } finally {
@@ -229,6 +237,7 @@ export default function AnunciarPage() {
       setPropertyType("Casa");
       setTransaction("Venda");
       setNeighborhood("");
+      setLocationInput("");
       setExpectedPrice("");
       setDetails("");
       setImages([]);
@@ -358,6 +367,32 @@ export default function AnunciarPage() {
                 className="w-full px-4 py-3 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none min-h-[48px]"
               />
             </div>
+          </div>
+
+          {/* Espaço para Localização do Imóvel (Endereço ou Link do Google Maps / GPS) */}
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-xs font-semibold text-slate-700 flex items-center gap-1">
+                <MapPin className="w-3.5 h-3.5 text-blue-600" />
+                <span>Localização do Imóvel (Endereço ou Link do Google Maps)</span>
+              </label>
+              <button
+                type="button"
+                onClick={handleGetCurrentLocation}
+                disabled={isGettingGps}
+                className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-800 disabled:opacity-50 transition-colors"
+              >
+                <Navigation className="w-3.5 h-3.5" />
+                <span>{isGettingGps ? "Obtendo GPS..." : "Usar minha localização atual"}</span>
+              </button>
+            </div>
+            <input
+              type="text"
+              value={locationInput}
+              onChange={(e) => setLocationInput(e.target.value)}
+              placeholder="Ex: Rua Raul Soares, 120 - Centro ou cole o link do Google Maps"
+              className="w-full px-4 py-3 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none min-h-[48px]"
+            />
           </div>
 
           <div>
