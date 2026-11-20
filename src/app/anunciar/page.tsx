@@ -1,8 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { PlusCircle, ShieldCheck, CheckCircle2, Send, MessageCircle } from "lucide-react";
-import { getWhatsAppLink } from "@/data/properties";
+import { useState, useRef } from "react";
+import { PlusCircle, ShieldCheck, CheckCircle2, Send, MessageCircle, ImagePlus, X } from "lucide-react";
+
+interface UploadedPreview {
+  id: string;
+  name: string;
+  dataUrl: string;
+}
 
 export default function AnunciarPage() {
   const [name, setName] = useState("");
@@ -12,11 +17,55 @@ export default function AnunciarPage() {
   const [neighborhood, setNeighborhood] = useState("");
   const [expectedPrice, setExpectedPrice] = useState("");
   const [details, setDetails] = useState("");
+  const [images, setImages] = useState<UploadedPreview[]>([]);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    Array.from(files).forEach((file) => {
+      if (!file.type.startsWith("image/")) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === "string") {
+          setImages((prev) => [
+            ...prev,
+            {
+              id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+              name: file.name,
+              dataUrl: reader.result as string,
+            },
+          ]);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const removeImage = (id: string) => {
+    setImages((prev) => prev.filter((img) => img.id !== id));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const msg = `Olá Araújo Imóveis! Quero anunciar meu imóvel com vocês.\n\nNome: ${name}\nWhatsApp: ${phone}\nTipo: ${propertyType}\nModalidade: ${transaction}\nBairro/Cidade: ${neighborhood}\nValor Desejado: ${expectedPrice}\nDetalhes: ${details}`;
-    window.open(getWhatsAppLink(msg), "_blank");
+    setIsSubmitted(true);
+
+    // Limpar campos após o envio
+    setName("");
+    setPhone("");
+    setPropertyType("Casa");
+    setTransaction("Venda");
+    setNeighborhood("");
+    setExpectedPrice("");
+    setDetails("");
+    setImages([]);
   };
 
   return (
@@ -60,6 +109,15 @@ export default function AnunciarPage() {
           <p className="text-xs text-slate-500">Nossa equipe entrará em contato para agendar a vistoria e fotos profissionais.</p>
         </div>
 
+        {isSubmitted && (
+          <div className="p-5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center gap-3 shadow-sm animate-in fade-in">
+            <CheckCircle2 className="w-6 h-6 text-emerald-600 shrink-0" />
+            <p className="text-sm sm:text-base font-bold">
+              Enviado com sucesso! Aguarde o contato para análise.
+            </p>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -68,7 +126,10 @@ export default function AnunciarPage() {
                 type="text"
                 required
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  if (isSubmitted) setIsSubmitted(false);
+                }}
                 placeholder="Ex: Carlos Araújo"
                 className="w-full px-4 py-3 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none min-h-[48px]"
               />
@@ -80,7 +141,10 @@ export default function AnunciarPage() {
                 type="tel"
                 required
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => {
+                  setPhone(e.target.value);
+                  if (isSubmitted) setIsSubmitted(false);
+                }}
                 placeholder="(33) 99999-9999"
                 className="w-full px-4 py-3 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none min-h-[48px]"
               />
@@ -151,12 +215,71 @@ export default function AnunciarPage() {
             ></textarea>
           </div>
 
+          {/* Espaço para Adicionar Imagens do Imóvel */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              Fotos do Imóvel (Opcional)
+            </label>
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-2xl p-6 text-center cursor-pointer transition-colors bg-slate-50 hover:bg-blue-50/40"
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleImageChange}
+                className="hidden"
+              />
+              <div className="flex flex-col items-center justify-center gap-2">
+                <div className="w-12 h-12 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center">
+                  <ImagePlus className="w-6 h-6" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-slate-700">
+                    Clique aqui para adicionar imagens do imóvel
+                  </p>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Você pode selecionar várias fotos (JPG, PNG, WEBP)
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {images.length > 0 && (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
+                {images.map((img) => (
+                  <div
+                    key={img.id}
+                    className="relative group rounded-xl overflow-hidden border border-slate-200 aspect-video bg-slate-100"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={img.dataUrl}
+                      alt={img.name}
+                      className="w-full h-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeImage(img.id)}
+                      className="absolute top-1.5 right-1.5 w-7 h-7 rounded-full bg-slate-900/80 hover:bg-rose-600 text-white flex items-center justify-center transition-colors"
+                      title="Remover imagem"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           <button
             type="submit"
             className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl flex items-center justify-center gap-2 text-base transition-all shadow-md active:scale-98 min-h-[52px]"
           >
             <Send className="w-5 h-5" />
-            <span>Enviar Dados via WhatsApp</span>
+            <span>Enviar para análise imobiliária</span>
           </button>
         </form>
       </div>
