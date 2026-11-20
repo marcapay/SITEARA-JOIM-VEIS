@@ -22,6 +22,9 @@ export interface Property {
   launch?: boolean;
   fichaId?: string;
   status: 'Disponível' | 'Reservado' | 'Vendido';
+  corretorResponsavel?: string;
+  linkWhatsappCorretor?: string;
+  whatsappCorretor?: string;
 }
 
 export const PROPERTIES_DATA: Property[] = [
@@ -320,6 +323,21 @@ export function getWhatsAppLink(message?: string): string {
 
 export function getPropertyWhatsAppLink(property: Property): string {
   const text = `Olá Araújo Imóveis! Tenho interesse no imóvel código #${property.code}: ${property.title} (${property.neighborhood}, ${property.city}) - ${formatCurrency(property.price)}. Gostaria de agendar uma visita!`;
+  
+  const brokerLink = property.linkWhatsappCorretor || property.whatsappCorretor;
+  if (brokerLink && typeof brokerLink === 'string' && brokerLink.trim()) {
+    const trimmed = brokerLink.trim();
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      const sep = trimmed.includes('?') ? '&' : '?';
+      return `${trimmed}${sep}text=${encodeURIComponent(text)}`;
+    }
+    const cleanDigits = trimmed.replace(/\D/g, '');
+    if (cleanDigits.length >= 10) {
+      const fullNumber = cleanDigits.startsWith('55') ? cleanDigits : `55${cleanDigits}`;
+      return `https://wa.me/${fullNumber}?text=${encodeURIComponent(text)}`;
+    }
+  }
+
   return `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(text)}`;
 }
 
