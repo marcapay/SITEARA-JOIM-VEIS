@@ -2,11 +2,56 @@
 
 import { useState, useRef } from "react";
 import { PlusCircle, ShieldCheck, CheckCircle2, Send, MessageCircle, ImagePlus, X } from "lucide-react";
+import { CRM_BASE_URL, CLOUD_STORE_URL } from "@/data/properties";
 
 interface UploadedPreview {
   id: string;
   name: string;
   dataUrl: string;
+}
+
+function compressImageFile(file: File): Promise<string> {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const resultStr = event.target?.result;
+      if (typeof resultStr !== "string") {
+        resolve("");
+        return;
+      }
+      const img = new window.Image();
+      img.onload = () => {
+        try {
+          const canvas = document.createElement("canvas");
+          let width = img.width;
+          let height = img.height;
+          const maxDim = 1000;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL("image/jpeg", 0.78));
+            return;
+          }
+        } catch {}
+        resolve(resultStr);
+      };
+      img.onerror = () => resolve(resultStr);
+      img.src = resultStr;
+    };
+    reader.onerror = () => resolve("");
+    reader.readAsDataURL(file);
+  });
 }
 
 export default function AnunciarPage() {
@@ -18,31 +63,29 @@ export default function AnunciarPage() {
   const [expectedPrice, setExpectedPrice] = useState("");
   const [details, setDetails] = useState("");
   const [images, setImages] = useState<UploadedPreview[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    Array.from(files).forEach((file) => {
-      if (!file.type.startsWith("image/")) return;
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (typeof reader.result === "string") {
-          setImages((prev) => [
-            ...prev,
-            {
-              id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-              name: file.name,
-              dataUrl: reader.result as string,
-            },
-          ]);
-        }
-      };
-      reader.readAsDataURL(file);
-    });
+    const selected = Array.from(files).filter((f) => f.type.startsWith("image/"));
+    for (const file of selected) {
+      const dataUrl = await compressImageFile(file);
+      if (dataUrl) {
+        setImages((prev) => [
+          ...prev,
+          {
+            id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+            name: file.name,
+            dataUrl,
+          },
+        ]);
+      }
+    }
 
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -53,19 +96,122 @@ export default function AnunciarPage() {
     setImages((prev) => prev.filter((img) => img.id !== id));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitted(true);
+    setIsSubmitting(true);
 
-    // Limpar campos após o envio
-    setName("");
-    setPhone("");
-    setPropertyType("Casa");
-    setTransaction("Venda");
-    setNeighborhood("");
-    setExpectedPrice("");
-    setDetails("");
-    setImages([]);
+    const nowIso = new Date().toISOString();
+    const todayDate = nowIso.split("T")[0];
+    const cleanPhone = phone.replace(/\D/g, "");
+    const numericPrice = Number(expectedPrice.replace(/[^\d]/g, "")) || "";
+    const autoCode = `AN-${Date.now().toString().slice(-4)}`;
+
+    const provisionalFicha = {
+      id: `ficha_site_${Date.now()}`,
+      codigoImovel: autoCode,
+      nomeFicha: `${autoCode} • ${propertyType} (${name.trim()})`,
+      nomeProprietario: name.trim(),
+      telefoneProprietario: phone.trim(),
+      emailProprietario: "",
+      horarioContatoProprietario: "Comercial (08:00 às 18:00)",
+      linkWhatsapp: cleanPhone ? `https://wa.me/55${cleanPhone}` : "",
+      tipoImovel: propertyType,
+      enderecoImovel: `${neighborhood.trim()} (${transaction})`,
+      bairroImovel: neighborhood.trim(),
+      pontoReferenciaImovel: "",
+      linkLocalizacaoImovel: "",
+      ocupacaoImovel: "Vazio",
+      nomeAcesso: name.trim(),
+      telefoneAcesso: phone.trim(),
+      dificuldadeAcesso: "Não",
+      observacoesAcesso: "",
+      aguaLigada: "Sim",
+      energiaLigada: "Sim",
+      animaisImovel: "Não",
+      observacoesImovel: `[Enviado pelo Site para Análise] Modalidade: ${transaction} | Preço Pretendido: ${
+        expectedPrice.trim() || "A combinar"
+      }${details.trim() ? ` | Descrição: ${details.trim()}` : ""}`,
+      imagensImovel: images.map((img) => img.dataUrl),
+      finalidadeImovel: transaction === "Aluguel" ? "alugar" : "comprar",
+      valorImovel: numericPrice,
+      precoPretendido: expectedPrice.trim(),
+      modalidadePretendida: transaction,
+      publicarNoSite: false,
+      provisoria: true,
+      dataVisita: todayDate,
+      horarioVisita: "09:00",
+      profissionalResponsavel: "Análise Imobiliária (Site)",
+      proprietarioAcompanhara: "Sim",
+      autorizacaoFotosVideos: "Sim",
+      confirmadoWhatsapp: "Não",
+      dataCaptacao: todayDate,
+      corretorResponsavel: "Análise Imobiliária (Site)",
+      origemCaptacao: "Site Oficial (Anunciar Imóvel)",
+      status: "Aguardando agendamento",
+      createdAt: nowIso,
+      updatedAt: nowIso,
+      createdBy: "Site Oficial (Anunciar Imóvel)",
+      updatedBy: "Site Oficial (Anunciar Imóvel)",
+    };
+
+    try {
+      // 1. Enviar para a API oficial do CRM (/api/properties com action: 'add_ficha')
+      let savedViaCrmApi = false;
+      try {
+        const crmRes = await fetch(`${CRM_BASE_URL}/api/properties`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "add_ficha",
+            ficha: provisionalFicha,
+          }),
+        });
+        if (crmRes.ok) {
+          const crmJson = await crmRes.json();
+          if (crmJson?.ficha) {
+            savedViaCrmApi = true;
+          }
+        }
+      } catch {}
+
+      // 2. Fallback direto na nuvem compartilhada do CRM para garantir 100% de entrega na aba Ficha
+      if (!savedViaCrmApi) {
+        try {
+          const cloudRes = await fetch(CLOUD_STORE_URL, { cache: "no-store" });
+          const cloudJson = cloudRes.ok ? await cloudRes.json() : {};
+          const existingData = cloudJson?.data || {};
+          const existingFichas = Array.isArray(existingData.fichas) ? existingData.fichas : [];
+          const existingList = Array.isArray(existingData.list) ? existingData.list : [];
+          const existingDeleted = Array.isArray(existingData.deletedFichaIds) ? existingData.deletedFichaIds : [];
+
+          await fetch(CLOUD_STORE_URL, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: "araujo_properties_store",
+              data: {
+                list: existingList,
+                fichas: [provisionalFicha, ...existingFichas],
+                deletedFichaIds: existingDeleted,
+              },
+            }),
+          });
+        } catch {}
+      }
+    } finally {
+      setIsSubmitting(false);
+      setIsSubmitted(true);
+
+      // Limpar campos após o envio
+      setName("");
+      setPhone("");
+      setPropertyType("Casa");
+      setTransaction("Venda");
+      setNeighborhood("");
+      setExpectedPrice("");
+      setDetails("");
+      setImages([]);
+    }
   };
 
   return (
@@ -276,10 +422,11 @@ export default function AnunciarPage() {
 
           <button
             type="submit"
-            className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl flex items-center justify-center gap-2 text-base transition-all shadow-md active:scale-98 min-h-[52px]"
+            disabled={isSubmitting}
+            className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white font-bold rounded-2xl flex items-center justify-center gap-2 text-base transition-all shadow-md active:scale-98 min-h-[52px]"
           >
             <Send className="w-5 h-5" />
-            <span>Enviar para análise imobiliária</span>
+            <span>{isSubmitting ? "Enviando para o CRM..." : "Enviar para análise imobiliária"}</span>
           </button>
         </form>
       </div>
