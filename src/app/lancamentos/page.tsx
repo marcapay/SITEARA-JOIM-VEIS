@@ -8,8 +8,8 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export const metadata = {
-  title: "Investimentos Imobiliários em Caratinga | Araújo Imóveis",
-  description: "Conheça as melhores oportunidades de investimento imobiliário, empreendimentos e lançamentos na planta em Caratinga - MG.",
+  title: "Imóvel na Planta em Caratinga | Araújo Imóveis",
+  description: "Conheça as melhores oportunidades de Imóvel na Planta, empreendimentos e lançamentos em Caratinga - MG.",
 };
 
 export default async function LancamentosPage() {
@@ -23,7 +23,7 @@ export default async function LancamentosPage() {
         <div className="flex items-center gap-2 text-amber-400 font-bold text-xs uppercase tracking-wider">
           <TrendingUp className="w-4 h-4" /> Oportunidades & Rendimento
         </div>
-        <h1 className="text-3xl sm:text-4xl font-black">Investimentos Imobiliários em Caratinga</h1>
+        <h1 className="text-3xl sm:text-4xl font-black">Imóvel na Planta em Caratinga</h1>
         <p className="text-slate-300 text-sm sm:text-base max-w-2xl">
           Garanta os melhores imóveis com alto potencial de valorização, condições facilitadas e parcelamento direto durante a construção.
         </p>
@@ -38,7 +38,7 @@ export default async function LancamentosPage() {
       <div>
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
-            {launchProperties.length} oportunidades de investimento disponíveis
+            {launchProperties.length} opções de Imóvel na Planta disponíveis
           </h2>
         </div>
 

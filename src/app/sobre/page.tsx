@@ -45,7 +45,7 @@ export default function SobrePage() {
             Fundada com a missão de trazer clareza e segurança jurídica às transações imobiliárias em Caratinga - MG, a <strong>Araújo Imóveis</strong> se consolidou pela seriedade no atendimento e pela busca incessante da satisfação de proprietários e inquilinos.
           </p>
           <p className="text-slate-600 leading-relaxed text-sm sm:text-base">
-            Nossa equipe de corretores é registrada no CRECI-MG e altamente capacitada para identificar as melhores oportunidades de investimento e encontrar a residência perfeita para cada família.
+            Nossa equipe de corretores é registrada no CRECI-MG e altamente capacitada para identificar as melhores oportunidades de Imóvel na Planta e encontrar a residência perfeita para cada família.
           </p>
 
           <div className="pt-2">
