@@ -177,25 +177,46 @@ export default function AnunciarPage() {
       // 2. Fallback direto na nuvem compartilhada do CRM para garantir 100% de entrega na aba Ficha
       if (!savedViaCrmApi) {
         try {
-          const cloudRes = await fetch(CLOUD_STORE_URL, { cache: "no-store" });
-          const cloudJson = cloudRes.ok ? await cloudRes.json() : {};
-          const existingData = cloudJson?.data || {};
-          const existingFichas = Array.isArray(existingData.fichas) ? existingData.fichas : [];
-          const existingList = Array.isArray(existingData.list) ? existingData.list : [];
-          const existingDeleted = Array.isArray(existingData.deletedFichaIds) ? existingData.deletedFichaIds : [];
+          const ptrRes = await fetch("https://keyvalue.immanuel.co/api/KeyVal/GetValue/araujo_imoveis_crm_users_v2/araujo_properties_store_ptr", { cache: "no-store" });
+          let existingData: any = {};
+          if (ptrRes.ok) {
+            const raw = await ptrRes.text();
+            if (raw && raw !== '""' && raw !== '"null"') {
+              const clean = raw.replace(/"/g, '').replace(/-/g, '+').replace(/_/g, '/');
+              const padded = clean + '='.repeat((4 - clean.length % 4) % 4);
+              const url = atob(padded);
+              if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+                const dataRes = await fetch(url, { cache: "no-store" });
+                if (dataRes.ok) existingData = await dataRes.json();
+              }
+            }
+          }
+          const existingFichas = Array.isArray(existingData?.fichas) ? existingData.fichas : [];
+          const existingList = Array.isArray(existingData?.list) ? existingData.list : [];
+          const existingDeleted = Array.isArray(existingData?.deletedFichaIds) ? existingData.deletedFichaIds : [];
 
-          await fetch(CLOUD_STORE_URL, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              name: "araujo_properties_store",
-              data: {
-                list: existingList,
-                fichas: [provisionalFicha, ...existingFichas],
-                deletedFichaIds: existingDeleted,
-              },
+          const newPayload = {
+            updatedAt: new Date().toISOString(),
+            list: existingList,
+            fichas: [provisionalFicha, ...existingFichas.filter((f: any) => f?.id !== provisionalFicha.id)],
+            deletedFichaIds: existingDeleted,
+          };
+
+          const dpRes = await fetch("https://dpaste.org/api/", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+              content: JSON.stringify(newPayload),
+              expiry_days: "365",
+              format: "url",
             }),
           });
+          if (dpRes.ok) {
+            const dpUrl = (await dpRes.text()).trim();
+            const rawUrl = `${dpUrl}/raw`;
+            const encoded = btoa(rawUrl).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+            await fetch(`https://keyvalue.immanuel.co/api/KeyVal/UpdateValue/araujo_imoveis_crm_users_v2/araujo_properties_store_ptr/${encoded}`, { method: "POST" });
+          }
         } catch {}
       }
     } finally {
