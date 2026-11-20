@@ -19,14 +19,15 @@ export default async function Home() {
       {/* 1. Hero Section com Pesquisa de Imóveis Mobile-First */}
       <section className="relative w-full bg-slate-900 text-white overflow-hidden py-10 sm:py-16 md:py-20 px-4">
         {/* Background Image Overlay */}
-        <div className="absolute inset-0 z-0 opacity-20">
+        <div className="absolute inset-0 z-0">
           <Image
-            src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1600&auto=format&fit=crop"
-            alt="Imóveis de Luxo"
+            src="/hero-bg.jpg"
+            alt="Araújo Imóveis - Atendimento em Caratinga"
             fill
-            className="object-cover object-center"
+            className="object-cover object-center opacity-40"
             priority
           />
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-950/60 via-slate-900/45 to-slate-950/75" />
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto flex flex-col items-center text-center">
