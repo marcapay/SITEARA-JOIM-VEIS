@@ -63,16 +63,6 @@ export function Header() {
             <span>Área do Cliente</span>
           </Link>
 
-          <a
-            href={getWhatsAppLink()}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hidden sm:flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs sm:text-sm font-bold px-4 py-2.5 rounded-xl transition-all shadow-sm active:scale-95"
-          >
-            <MessageCircle className="w-4 h-4 fill-current" />
-            <span>WhatsApp</span>
-          </a>
-
           <button
             onClick={toggleMenu}
             className="lg:hidden p-2.5 text-slate-200 hover:text-white hover:bg-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[48px] min-h-[48px] flex items-center justify-center"
