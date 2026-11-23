@@ -39,8 +39,12 @@ export function Header() {
           <Link href="/alugar" className="hover:text-blue-400 transition-colors">
             Alugar
           </Link>
-          <Link href="/lancamentos" className="hover:text-amber-300 transition-colors flex items-center gap-1 text-amber-300 font-semibold bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/30 hover:bg-amber-500/20">
-            <Sparkles className="w-3.5 h-3.5 text-amber-300" /> Imóvel na Planta
+          <Link href="/lancamentos" className="hover:text-amber-300 transition-colors flex items-center gap-1.5 text-amber-300 font-semibold bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/30 hover:bg-amber-500/20 text-xs sm:text-sm">
+            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+            <div className="flex flex-col text-left leading-none">
+              <span>Imóvel na Planta</span>
+              <span className="text-[9px] text-amber-400 font-medium uppercase mt-0.5">Investidor</span>
+            </div>
           </Link>
           <Link href="/anunciar" className="hover:text-blue-400 transition-colors">
             Anunciar Imóvel
@@ -120,7 +124,10 @@ export function Header() {
               className="flex items-center gap-3 p-3.5 text-slate-100 hover:bg-slate-800 rounded-xl text-lg font-medium transition-colors"
             >
               <Sparkles className="w-5 h-5 text-amber-400" />
-              <span>Imóvel na Planta</span>
+              <div className="flex flex-col text-left leading-tight">
+                <span>Imóvel na Planta</span>
+                <span className="text-xs text-amber-400 font-semibold uppercase">Investidor</span>
+              </div>
             </Link>
 
             <Link

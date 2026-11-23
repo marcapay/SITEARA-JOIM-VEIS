@@ -87,7 +87,7 @@ export default async function Home() {
                 <Sparkles className="w-6 h-6" />
               </div>
               <span className="font-bold text-slate-900 text-sm sm:text-base">Imóvel na Planta</span>
-              <span className="text-xs text-slate-500 hidden sm:inline">Oportunidades e lançamentos</span>
+              <span className="text-xs text-amber-600 font-semibold hidden sm:inline">Investidor • Lançamentos</span>
             </Link>
 
             <Link

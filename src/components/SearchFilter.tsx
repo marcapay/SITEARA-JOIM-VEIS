@@ -82,13 +82,18 @@ export function SearchFilter({ initialTransaction = "todos", className = "" }: S
         <button
           type="button"
           onClick={() => setTransaction("lancamento")}
-          className={`px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold transition-all min-h-[44px] ${
+          className={`px-4 sm:px-5 py-1.5 sm:py-2 rounded-full font-bold transition-all min-h-[44px] flex flex-col items-center justify-center leading-tight ${
             transaction === "lancamento"
               ? "bg-amber-500 text-white shadow-md"
               : "bg-slate-100 text-slate-700 hover:bg-slate-200"
           }`}
         >
-          Imóvel na Planta
+          <span className="text-xs sm:text-sm">Imóvel na Planta</span>
+          <span className={`text-[10px] sm:text-[11px] font-semibold tracking-wide uppercase ${
+            transaction === "lancamento" ? "text-amber-100" : "text-amber-600"
+          }`}>
+            Investidor
+          </span>
         </button>
         <button
           type="button"
