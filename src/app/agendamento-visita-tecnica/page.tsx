@@ -102,79 +102,8 @@ const CAPTURE_SOURCES = [
   "Outro"
 ];
 
-// Fichas demonstrativas iniciais
-const INITIAL_DEMO_FORMS: TechnicalVisitForm[] = [
-  {
-    id: "f-101",
-    code: "IMV-2026-001",
-    ownerName: "Carlos Eduardo Silva",
-    ownerPhone: "(33) 99911-2233",
-    ownerEmail: "carlos.silva@email.com",
-    bestContactTime: "Manhã (08h às 12h)",
-    propertyType: "Casa",
-    address: "Rua Capitão Paiva, 202 - Centro",
-    neighborhood: "Centro",
-    referencePoint: "Próximo à Praça Cesário Alvim",
-    locationUrl: "https://maps.google.com/?q=-19.7941,-42.1402",
-    occupancyStatus: "vazio",
-    accessContactName: "Carlos Eduardo (Proprietário)",
-    accessContactPhone: "(33) 99911-2233",
-    hasAccessDifficulty: false,
-    waterConnected: true,
-    powerConnected: true,
-    hasPets: false,
-    notes: "Chaves disponíveis com a secretária na recepção. Imóvel recém-pintado.",
-    visitDate: "2026-09-18",
-    visitTime: "14:30",
-    responsibleProfessional: "Eng. Roberto Mendes",
-    ownerWillAccompany: true,
-    mediaAuthorization: true,
-    whatsappConfirmed: true,
-    captureDate: "2026-09-15",
-    realtorName: "Fernanda Lima",
-    captureSource: "WhatsApp da Imobiliária",
-    status: "Agendado",
-    createdAt: "2026-09-15T08:00:00.000Z",
-    updatedAt: "2026-09-15T08:00:00.000Z",
-    createdBy: "Fernanda Lima",
-    updatedBy: "Fernanda Lima"
-  },
-  {
-    id: "f-102",
-    code: "IMV-2026-002",
-    ownerName: "Mariana Oliveira Costa",
-    ownerPhone: "(33) 99888-4455",
-    ownerEmail: "mariana.costa@email.com",
-    bestContactTime: "Tarde (13h às 18h)",
-    propertyType: "Apartamento",
-    address: "Av. Moacyr de Mattos, 450 - Apt 302",
-    neighborhood: "Esplanada",
-    referencePoint: "Ao lado da Padaria Pão Gostoso",
-    locationUrl: "",
-    occupancyStatus: "ocupado_inquilino",
-    accessContactName: "Juliana (Inquilina atual)",
-    accessContactPhone: "(33) 98765-4321",
-    hasAccessDifficulty: true,
-    waterConnected: true,
-    powerConnected: true,
-    hasPets: true,
-    notes: "Possui 1 cão pequeno porte. Interfone 302. Agendar com 24h de antecedência com a inquilina.",
-    visitDate: "2026-09-20",
-    visitTime: "10:00",
-    responsibleProfessional: "Vistoriador Lucas Souza",
-    ownerWillAccompany: false,
-    mediaAuthorization: true,
-    whatsappConfirmed: true,
-    captureDate: "2026-09-14",
-    realtorName: "Ricardo Araújo",
-    captureSource: "Indicação de Cliente",
-    status: "Aguardando agendamento",
-    createdAt: "2026-09-14T10:00:00.000Z",
-    updatedAt: "2026-09-14T10:00:00.000Z",
-    createdBy: "Ricardo Araújo",
-    updatedBy: "Ricardo Araújo"
-  }
-];
+// Fichas demonstrativas iniciais (vazio - apenas fichas reais)
+const INITIAL_DEMO_FORMS: TechnicalVisitForm[] = [];
 
 export default function AgendamentoVisitaTecnicaPage() {
   const [formsList, setFormsList] = useState<TechnicalVisitForm[]>([]);

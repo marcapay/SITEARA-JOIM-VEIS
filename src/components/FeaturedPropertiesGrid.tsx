@@ -1,15 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Property, CRM_BASE_URL, CLOUD_STORE_URL } from "@/data/properties";
+import { Property, CRM_BASE_URL, CLOUD_STORE_URL, isImaginaryProperty } from "@/data/properties";
 import { PropertyCard } from "@/components/PropertyCard";
+import { Building2 } from "lucide-react";
 
 interface FeaturedPropertiesGridProps {
   initialProperties: Property[];
 }
 
 export function FeaturedPropertiesGrid({ initialProperties }: FeaturedPropertiesGridProps) {
-  const [properties, setProperties] = useState<Property[]>(initialProperties);
+  const [properties, setProperties] = useState<Property[]>(
+    (initialProperties || []).filter((p) => !isImaginaryProperty(p))
+  );
 
   useEffect(() => {
     let isMounted = true;
@@ -26,11 +29,11 @@ export function FeaturedPropertiesGrid({ initialProperties }: FeaturedProperties
           });
           if (res.ok) {
             const data = await res.json();
-            if (Array.isArray(data) && data.length > 0) {
+            if (Array.isArray(data)) {
               liveCrmProps = data;
             }
           }
-        } catch (crmErr) {}
+        } catch {}
 
         // 2. Se o CRM não respondeu, consulta o repositório de nuvem compartilhado
         if (liveCrmProps.length === 0 && CLOUD_STORE_URL) {
@@ -45,19 +48,13 @@ export function FeaturedPropertiesGrid({ initialProperties }: FeaturedProperties
                 liveCrmProps = cloudJson.data.list;
               }
             }
-          } catch (cloudErr) {}
+          } catch {}
         }
 
-        if (isMounted && liveCrmProps.length > 0) {
-          const liveCodes = new Set(liveCrmProps.map(p => (p.code || '').toLowerCase().replace(/^#+/, '')));
-          const liveIds = new Set(liveCrmProps.map(p => (p.id || '').toLowerCase()));
-          
-          const staticRemain = initialProperties.filter(
-            p => !liveCodes.has((p.code || '').toLowerCase().replace(/^#+/, '')) && !liveIds.has((p.id || '').toLowerCase())
-          );
-
-          const featuredLive = liveCrmProps.filter(p => p.featured !== false);
-          setProperties([...featuredLive, ...staticRemain]);
+        if (isMounted) {
+          const realFeatured = liveCrmProps
+            .filter((p) => !isImaginaryProperty(p) && p.featured !== false);
+          setProperties(realFeatured);
         }
       } catch (e) {
         console.warn("Client live properties refresh error:", e);
@@ -70,6 +67,20 @@ export function FeaturedPropertiesGrid({ initialProperties }: FeaturedProperties
       isMounted = false;
     };
   }, [initialProperties]);
+
+  if (properties.length === 0) {
+    return (
+      <div className="bg-white rounded-3xl p-10 text-center border border-slate-200 space-y-3 max-w-lg mx-auto my-4 shadow-sm">
+        <div className="w-14 h-14 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto">
+          <Building2 className="w-7 h-7" />
+        </div>
+        <h3 className="text-lg font-bold text-slate-800">Nenhum imóvel publicado no momento</h3>
+        <p className="text-slate-500 text-sm">
+          Os imóveis aprovados e publicados pela Araújo Imóveis aparecerão automaticamente aqui.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
