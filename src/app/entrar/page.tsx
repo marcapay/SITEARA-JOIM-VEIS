@@ -197,7 +197,7 @@ export default function EntrarPage() {
                     <div className="mt-2 pt-2 border-t border-rose-500/20 flex items-center justify-between gap-2">
                       <span className="text-[11px] text-rose-300/80">E-mail ainda não cadastrado no CRM?</span>
                       <a
-                        href={`https://wa.me/5533999999999?text=${encodeURIComponent(`Olá! Tentei acessar a área do cliente no site com o e-mail "${email}", mas não consto na aba de Usuários do CRM. Gostaria de solicitar meu cadastro.`)}`}
+                        href={`https://wa.me/553330400919?text=${encodeURIComponent(`Olá! Tentei acessar a área do cliente no site com o e-mail "${email}", mas não consto na aba de Usuários do CRM. Gostaria de solicitar meu cadastro.`)}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-200 hover:text-white underline shrink-0"
@@ -263,7 +263,7 @@ export default function EntrarPage() {
                 </label>
 
                 <a
-                  href={`https://wa.me/5533999999999?text=${encodeURIComponent(`Olá! Sou usuário na Araújo Imóveis e preciso recuperar minha senha do CRM.`)}`}
+                  href={`https://wa.me/553330400919?text=${encodeURIComponent(`Olá! Sou usuário na Araújo Imóveis e preciso recuperar minha senha do CRM.`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-400 hover:text-blue-300 font-semibold hover:underline"

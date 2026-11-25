@@ -52,8 +52,8 @@ export const PROPERTY_TYPES = ["Todos", "Casa", "Apartamento", "Cobertura", "Ter
 export const CITIES = ["Todas", "Caratinga", "Ipatinga", "Manhuaçu"];
 export const NEIGHBORHOODS = ["Todos", "Centro", "Limoeiro", "Das Graças", "Santa Zita", "Esplanada", "Belvedere"];
 
-export const WHATSAPP_PHONE = "5533999999999";
-export const WHATSAPP_DISPLAY_PHONE = "(33) 99999-9999";
+export const WHATSAPP_PHONE = "553330400919";
+export const WHATSAPP_DISPLAY_PHONE = "+55 33 3040-0919";
 
 export function formatCurrency(value: number): string {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(value);

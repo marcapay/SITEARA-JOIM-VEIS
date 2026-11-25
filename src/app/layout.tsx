@@ -58,7 +58,7 @@ export default function RootLayout({
     image: `${siteUrl}/logo.png`,
     '@id': siteUrl,
     url: siteUrl,
-    telephone: '(33) 99999-9999',
+    telephone: '+55 33 3040-0919',
     address: {
       '@type': 'PostalAddress',
       addressLocality: 'Caratinga',
